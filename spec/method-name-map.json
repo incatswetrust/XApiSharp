@@ -1,0 +1,572 @@
+{
+  "DELETE /2/account_activity/webhooks/{webhook_id}/subscriptions/{user_id}/all": {
+    "methodName": "AccountActivity.DeleteAccountActivityWebhooksByWebhookIdSubscriptionsByUserIdAllAsync"
+  },
+  "DELETE /2/activity/subscriptions": {
+    "methodName": "Activity.DeleteActivitySubscriptionsAsync"
+  },
+  "DELETE /2/activity/subscriptions/{subscription_id}": {
+    "methodName": "Activity.DeleteActivitySubscriptionsBySubscriptionIdAsync"
+  },
+  "DELETE /2/bots/{id}": {
+    "methodName": "Bots.DeleteBotsByIdAsync"
+  },
+  "DELETE /2/bots/{id}/token": {
+    "methodName": "Bots.DeleteBotsByIdTokenAsync"
+  },
+  "DELETE /2/broadcasts/scheduled/{id}": {
+    "methodName": "Broadcasts.DeleteBroadcastsScheduledByIdAsync"
+  },
+  "DELETE /2/broadcasts/{id}/chat/mutes/{user_id}": {
+    "methodName": "Broadcasts.DeleteBroadcastsByIdChatMutesByUserIdAsync"
+  },
+  "DELETE /2/broadcasts/{id}/chat/{message_id}": {
+    "methodName": "Broadcasts.DeleteBroadcastsByIdChatByMessageIdAsync"
+  },
+  "DELETE /2/compliance/jobs/{id}": {
+    "methodName": "Compliance.DeleteComplianceJobsByIdAsync"
+  },
+  "DELETE /2/connections": {
+    "methodName": "Connections.DeleteConnectionsAsync"
+  },
+  "DELETE /2/connections/all": {
+    "methodName": "Connections.DeleteConnectionsAllAsync"
+  },
+  "DELETE /2/connections/{endpoint_id}": {
+    "methodName": "Connections.DeleteConnectionsByEndpointIdAsync"
+  },
+  "DELETE /2/dm_events/{event_id}": {
+    "methodName": "DirectMessages.DeleteDmEventsByEventIdAsync"
+  },
+  "DELETE /2/lists/{id}": {
+    "methodName": "Lists.DeleteListsByIdAsync"
+  },
+  "DELETE /2/lists/{id}/members/{user_id}": {
+    "methodName": "Lists.DeleteListsByIdMembersByUserIdAsync"
+  },
+  "DELETE /2/media/subtitles": {
+    "methodName": "Media.DeleteMediaSubtitlesAsync"
+  },
+  "DELETE /2/notes/{id}": {
+    "methodName": "CommunityNotes.DeleteNotesByIdAsync"
+  },
+  "DELETE /2/tweets/search/webhooks/{webhook_id}": {
+    "methodName": "Webhooks.DeleteTweetsSearchWebhooksByWebhookIdAsync"
+  },
+  "DELETE /2/tweets/{id}": {
+    "methodName": "Posts.DeleteTweetsByIdAsync"
+  },
+  "DELETE /2/users/{id}/bookmarks/{tweet_id}": {
+    "methodName": "Bookmarks.DeleteUsersByIdBookmarksByTweetIdAsync"
+  },
+  "DELETE /2/users/{id}/followed_lists/{list_id}": {
+    "methodName": "Users.DeleteUsersByIdFollowedListsByListIdAsync"
+  },
+  "DELETE /2/users/{id}/likes/{tweet_id}": {
+    "methodName": "Users.DeleteUsersByIdLikesByTweetIdAsync"
+  },
+  "DELETE /2/users/{id}/pinned_lists/{list_id}": {
+    "methodName": "Users.DeleteUsersByIdPinnedListsByListIdAsync"
+  },
+  "DELETE /2/users/{id}/retweets/{source_tweet_id}": {
+    "methodName": "Users.DeleteUsersByIdRetweetsBySourceTweetIdAsync"
+  },
+  "DELETE /2/users/{source_user_id}/following/{target_user_id}": {
+    "methodName": "Users.DeleteUsersBySourceUserIdFollowingByTargetUserIdAsync"
+  },
+  "DELETE /2/users/{source_user_id}/muting/{target_user_id}": {
+    "methodName": "Users.DeleteUsersBySourceUserIdMutingByTargetUserIdAsync"
+  },
+  "DELETE /2/webhooks/{webhook_id}": {
+    "methodName": "Webhooks.DeleteWebhooksByWebhookIdAsync"
+  },
+  "GET /2/account": {
+    "methodName": "Account.ListAccountAsync"
+  },
+  "GET /2/account_activity/subscriptions/count": {
+    "methodName": "AccountActivity.ListAccountActivitySubscriptionsCountAsync"
+  },
+  "GET /2/account_activity/webhooks/{webhook_id}/subscriptions/all": {
+    "methodName": "AccountActivity.GetAccountActivityWebhooksByWebhookIdSubscriptionsAllAsync"
+  },
+  "GET /2/account_activity/webhooks/{webhook_id}/subscriptions/all/list": {
+    "methodName": "AccountActivity.GetAccountActivityWebhooksByWebhookIdSubscriptionsAllListAsync"
+  },
+  "GET /2/activity/stream": {
+    "methodName": "Stream.ListActivityStreamAsync"
+  },
+  "GET /2/activity/subscriptions": {
+    "methodName": "Activity.ListActivitySubscriptionsAsync"
+  },
+  "GET /2/bots": {
+    "methodName": "Bots.ListBotsAsync"
+  },
+  "GET /2/broadcasts": {
+    "methodName": "Broadcasts.ListBroadcastsAsync"
+  },
+  "GET /2/broadcasts/scheduled": {
+    "methodName": "Broadcasts.ListBroadcastsScheduledAsync"
+  },
+  "GET /2/broadcasts/scheduled/{id}": {
+    "methodName": "Broadcasts.GetBroadcastsScheduledByIdAsync"
+  },
+  "GET /2/broadcasts/{id}": {
+    "methodName": "Broadcasts.GetBroadcastsByIdAsync"
+  },
+  "GET /2/broadcasts/{id}/chat": {
+    "methodName": "Broadcasts.GetBroadcastsByIdChatAsync"
+  },
+  "GET /2/chat/conversations": {
+    "methodName": "Chat.ListChatConversationsAsync"
+  },
+  "GET /2/chat/conversations/{id}": {
+    "methodName": "Chat.GetChatConversationsByIdAsync"
+  },
+  "GET /2/chat/conversations/{id}/events": {
+    "methodName": "Chat.GetChatConversationsByIdEventsAsync"
+  },
+  "GET /2/chat/media/{id}/{media_hash_key}": {
+    "methodName": "Chat.GetChatMediaByIdByMediaHashKeyAsync"
+  },
+  "GET /2/communities/search": {
+    "methodName": "Communities.ListCommunitiesSearchAsync"
+  },
+  "GET /2/communities/{id}": {
+    "methodName": "Communities.GetCommunitiesByIdAsync"
+  },
+  "GET /2/compliance/jobs": {
+    "methodName": "Compliance.ListComplianceJobsAsync"
+  },
+  "GET /2/compliance/jobs/{id}": {
+    "methodName": "Compliance.GetComplianceJobsByIdAsync"
+  },
+  "GET /2/compliance/jobs/{id}/download": {
+    "methodName": "Compliance.GetComplianceJobsByIdDownloadAsync"
+  },
+  "GET /2/connections": {
+    "methodName": "Connections.ListConnectionsAsync"
+  },
+  "GET /2/dm_conversations/media/{dm_id}/{media_id}/{resource_id}": {
+    "methodName": "DirectMessages.GetDmConversationsMediaByDmIdByMediaIdByResourceIdAsync"
+  },
+  "GET /2/dm_conversations/with/{participant_id}/dm_events": {
+    "methodName": "DirectMessages.GetDmConversationsWithByParticipantIdDmEventsAsync"
+  },
+  "GET /2/dm_conversations/{id}/dm_events": {
+    "methodName": "DirectMessages.GetDmConversationsByIdDmEventsAsync"
+  },
+  "GET /2/dm_events": {
+    "methodName": "DirectMessages.ListDmEventsAsync"
+  },
+  "GET /2/dm_events/{event_id}": {
+    "methodName": "DirectMessages.GetDmEventsByEventIdAsync"
+  },
+  "GET /2/likes/compliance/stream": {
+    "methodName": "Stream.ListLikesComplianceStreamAsync"
+  },
+  "GET /2/likes/firehose/stream": {
+    "methodName": "Stream.ListLikesFirehoseStreamAsync"
+  },
+  "GET /2/likes/sample10/stream": {
+    "methodName": "Stream.ListLikesSample10StreamAsync"
+  },
+  "GET /2/lists/{id}": {
+    "methodName": "Lists.GetListsByIdAsync"
+  },
+  "GET /2/lists/{id}/followers": {
+    "methodName": "Lists.GetListsByIdFollowersAsync"
+  },
+  "GET /2/lists/{id}/members": {
+    "methodName": "Lists.GetListsByIdMembersAsync"
+  },
+  "GET /2/lists/{id}/tweets": {
+    "methodName": "Lists.GetListsByIdTweetsAsync"
+  },
+  "GET /2/media": {
+    "methodName": "Media.ListMediaAsync"
+  },
+  "GET /2/media/analytics": {
+    "methodName": "Media.ListMediaAnalyticsAsync"
+  },
+  "GET /2/media/upload": {
+    "methodName": "Media.ListMediaUploadAsync"
+  },
+  "GET /2/media/{media_key}": {
+    "methodName": "Media.GetMediaByMediaKeyAsync"
+  },
+  "GET /2/news/search": {
+    "methodName": "News.ListNewsSearchAsync"
+  },
+  "GET /2/news/{id}": {
+    "methodName": "News.GetNewsByIdAsync"
+  },
+  "GET /2/notes/search/notes_written": {
+    "methodName": "CommunityNotes.ListNotesSearchNotesWrittenAsync"
+  },
+  "GET /2/notes/search/posts_eligible_for_notes": {
+    "methodName": "CommunityNotes.ListNotesSearchPostsEligibleForNotesAsync"
+  },
+  "GET /2/openapi.json": {
+    "methodName": "General.ListOpenapi.jsonAsync"
+  },
+  "GET /2/spaces": {
+    "methodName": "Spaces.ListSpacesAsync"
+  },
+  "GET /2/spaces/by/creator_ids": {
+    "methodName": "Spaces.ListSpacesByCreatorIdsAsync"
+  },
+  "GET /2/spaces/search": {
+    "methodName": "Spaces.ListSpacesSearchAsync"
+  },
+  "GET /2/spaces/{id}": {
+    "methodName": "Spaces.GetSpacesByIdAsync"
+  },
+  "GET /2/spaces/{id}/buyers": {
+    "methodName": "Spaces.GetSpacesByIdBuyersAsync"
+  },
+  "GET /2/spaces/{id}/tweets": {
+    "methodName": "Spaces.GetSpacesByIdTweetsAsync"
+  },
+  "GET /2/trends/by/woeid/{woeid}": {
+    "methodName": "Trends.GetTrendsByWoeidByWoeidAsync"
+  },
+  "GET /2/tweets": {
+    "methodName": "Posts.ListTweetsAsync"
+  },
+  "GET /2/tweets/analytics": {
+    "methodName": "Posts.ListTweetsAnalyticsAsync"
+  },
+  "GET /2/tweets/compliance/stream": {
+    "methodName": "Stream.ListTweetsComplianceStreamAsync"
+  },
+  "GET /2/tweets/counts/all": {
+    "methodName": "Posts.ListTweetsCountsAllAsync"
+  },
+  "GET /2/tweets/counts/recent": {
+    "methodName": "Posts.ListTweetsCountsRecentAsync"
+  },
+  "GET /2/tweets/firehose/stream": {
+    "methodName": "Stream.ListTweetsFirehoseStreamAsync"
+  },
+  "GET /2/tweets/firehose/stream/lang/en": {
+    "methodName": "Stream.ListTweetsFirehoseStreamLangEnAsync"
+  },
+  "GET /2/tweets/firehose/stream/lang/ja": {
+    "methodName": "Stream.ListTweetsFirehoseStreamLangJaAsync"
+  },
+  "GET /2/tweets/firehose/stream/lang/ko": {
+    "methodName": "Stream.ListTweetsFirehoseStreamLangKoAsync"
+  },
+  "GET /2/tweets/firehose/stream/lang/pt": {
+    "methodName": "Stream.ListTweetsFirehoseStreamLangPtAsync"
+  },
+  "GET /2/tweets/label/stream": {
+    "methodName": "Stream.ListTweetsLabelStreamAsync"
+  },
+  "GET /2/tweets/sample/stream": {
+    "methodName": "Stream.ListTweetsSampleStreamAsync"
+  },
+  "GET /2/tweets/sample10/stream": {
+    "methodName": "Stream.ListTweetsSample10StreamAsync"
+  },
+  "GET /2/tweets/search/all": {
+    "methodName": "Posts.ListTweetsSearchAllAsync"
+  },
+  "GET /2/tweets/search/recent": {
+    "methodName": "Posts.ListTweetsSearchRecentAsync"
+  },
+  "GET /2/tweets/search/stream": {
+    "methodName": "Stream.ListTweetsSearchStreamAsync"
+  },
+  "GET /2/tweets/search/stream/rules": {
+    "methodName": "Stream.ListTweetsSearchStreamRulesAsync"
+  },
+  "GET /2/tweets/search/stream/rules/counts": {
+    "methodName": "Stream.ListTweetsSearchStreamRulesCountsAsync"
+  },
+  "GET /2/tweets/search/webhooks": {
+    "methodName": "Webhooks.ListTweetsSearchWebhooksAsync"
+  },
+  "GET /2/tweets/{id}": {
+    "methodName": "Posts.GetTweetsByIdAsync"
+  },
+  "GET /2/tweets/{id}/liking_users": {
+    "methodName": "Posts.GetTweetsByIdLikingUsersAsync"
+  },
+  "GET /2/tweets/{id}/quote_tweets": {
+    "methodName": "Posts.GetTweetsByIdQuoteTweetsAsync"
+  },
+  "GET /2/tweets/{id}/retweeted_by": {
+    "methodName": "Posts.GetTweetsByIdRetweetedByAsync"
+  },
+  "GET /2/tweets/{id}/retweets": {
+    "methodName": "Posts.GetTweetsByIdRetweetsAsync"
+  },
+  "GET /2/usage/credits": {
+    "methodName": "Usage.ListUsageCreditsAsync"
+  },
+  "GET /2/usage/tweets": {
+    "methodName": "Usage.ListUsageTweetsAsync"
+  },
+  "GET /2/users": {
+    "methodName": "Users.ListUsersAsync"
+  },
+  "GET /2/users/by": {
+    "methodName": "Users.ListUsersByAsync"
+  },
+  "GET /2/users/by/username/{username}": {
+    "methodName": "Users.GetUsersByUsernameByUsernameAsync"
+  },
+  "GET /2/users/compliance/stream": {
+    "methodName": "Stream.ListUsersComplianceStreamAsync"
+  },
+  "GET /2/users/me": {
+    "methodName": "Users.ListUsersMeAsync"
+  },
+  "GET /2/users/personalized_trends": {
+    "methodName": "Trends.ListUsersPersonalizedTrendsAsync"
+  },
+  "GET /2/users/public_keys": {
+    "methodName": "Users.ListUsersPublicKeysAsync"
+  },
+  "GET /2/users/reposts_of_me": {
+    "methodName": "Users.ListUsersRepostsOfMeAsync"
+  },
+  "GET /2/users/search": {
+    "methodName": "Users.ListUsersSearchAsync"
+  },
+  "GET /2/users/{id}": {
+    "methodName": "Users.GetUsersByIdAsync"
+  },
+  "GET /2/users/{id}/affiliates": {
+    "methodName": "Users.GetUsersByIdAffiliatesAsync"
+  },
+  "GET /2/users/{id}/blocking": {
+    "methodName": "Users.GetUsersByIdBlockingAsync"
+  },
+  "GET /2/users/{id}/bookmarks": {
+    "methodName": "Bookmarks.GetUsersByIdBookmarksAsync"
+  },
+  "GET /2/users/{id}/bookmarks/folders": {
+    "methodName": "Bookmarks.GetUsersByIdBookmarksFoldersAsync"
+  },
+  "GET /2/users/{id}/bookmarks/folders/{folder_id}": {
+    "methodName": "Bookmarks.GetUsersByIdBookmarksFoldersByFolderIdAsync"
+  },
+  "GET /2/users/{id}/followed_lists": {
+    "methodName": "Users.GetUsersByIdFollowedListsAsync"
+  },
+  "GET /2/users/{id}/followers": {
+    "methodName": "Users.GetUsersByIdFollowersAsync"
+  },
+  "GET /2/users/{id}/following": {
+    "methodName": "Users.GetUsersByIdFollowingAsync"
+  },
+  "GET /2/users/{id}/liked_tweets": {
+    "methodName": "Users.GetUsersByIdLikedTweetsAsync"
+  },
+  "GET /2/users/{id}/list_memberships": {
+    "methodName": "Users.GetUsersByIdListMembershipsAsync"
+  },
+  "GET /2/users/{id}/mentions": {
+    "methodName": "Users.GetUsersByIdMentionsAsync"
+  },
+  "GET /2/users/{id}/muting": {
+    "methodName": "Users.GetUsersByIdMutingAsync"
+  },
+  "GET /2/users/{id}/owned_lists": {
+    "methodName": "Users.GetUsersByIdOwnedListsAsync"
+  },
+  "GET /2/users/{id}/pinned_lists": {
+    "methodName": "Users.GetUsersByIdPinnedListsAsync"
+  },
+  "GET /2/users/{id}/public_keys": {
+    "methodName": "Users.GetUsersByIdPublicKeysAsync"
+  },
+  "GET /2/users/{id}/timelines/reverse_chronological": {
+    "methodName": "Users.GetUsersByIdTimelinesReverseChronologicalAsync"
+  },
+  "GET /2/users/{id}/tweets": {
+    "methodName": "Users.GetUsersByIdTweetsAsync"
+  },
+  "GET /2/webhooks": {
+    "methodName": "Webhooks.ListWebhooksAsync"
+  },
+  "POST /2/account": {
+    "methodName": "Account.CreateAccountAsync"
+  },
+  "POST /2/account_activity/webhooks/{webhook_id}/subscriptions/all": {
+    "methodName": "AccountActivity.CreateAccountActivityWebhooksByWebhookIdSubscriptionsAllAsync"
+  },
+  "POST /2/activity/subscriptions": {
+    "methodName": "Activity.CreateActivitySubscriptionsAsync"
+  },
+  "POST /2/articles/draft": {
+    "methodName": "Articles.CreateArticlesDraftAsync"
+  },
+  "POST /2/articles/{article_id}/publish": {
+    "methodName": "Articles.CreateArticlesByArticleIdPublishAsync"
+  },
+  "POST /2/bots": {
+    "methodName": "Bots.CreateBotsAsync"
+  },
+  "POST /2/bots/{id}/token": {
+    "methodName": "Bots.CreateBotsByIdTokenAsync"
+  },
+  "POST /2/broadcasts/scheduled": {
+    "methodName": "Broadcasts.CreateBroadcastsScheduledAsync"
+  },
+  "POST /2/broadcasts/scheduled/{id}/live": {
+    "methodName": "Broadcasts.CreateBroadcastsScheduledByIdLiveAsync"
+  },
+  "POST /2/broadcasts/{id}/chat": {
+    "methodName": "Broadcasts.CreateBroadcastsByIdChatAsync"
+  },
+  "POST /2/broadcasts/{id}/chat/mutes": {
+    "methodName": "Broadcasts.CreateBroadcastsByIdChatMutesAsync"
+  },
+  "POST /2/chat/conversations/group": {
+    "methodName": "Chat.CreateChatConversationsGroupAsync"
+  },
+  "POST /2/chat/conversations/group/initialize": {
+    "methodName": "Chat.CreateChatConversationsGroupInitializeAsync"
+  },
+  "POST /2/chat/conversations/{id}/keys": {
+    "methodName": "Chat.CreateChatConversationsByIdKeysAsync"
+  },
+  "POST /2/chat/conversations/{id}/members": {
+    "methodName": "Chat.CreateChatConversationsByIdMembersAsync"
+  },
+  "POST /2/chat/conversations/{id}/messages": {
+    "methodName": "Chat.CreateChatConversationsByIdMessagesAsync"
+  },
+  "POST /2/chat/conversations/{id}/messages/delete": {
+    "methodName": "Chat.CreateChatConversationsByIdMessagesDeleteAsync"
+  },
+  "POST /2/chat/conversations/{id}/read": {
+    "methodName": "Chat.CreateChatConversationsByIdReadAsync"
+  },
+  "POST /2/chat/conversations/{id}/typing": {
+    "methodName": "Chat.CreateChatConversationsByIdTypingAsync"
+  },
+  "POST /2/chat/media/upload/initialize": {
+    "methodName": "Chat.CreateChatMediaUploadInitializeAsync"
+  },
+  "POST /2/chat/media/upload/{id}/append": {
+    "methodName": "Chat.CreateChatMediaUploadByIdAppendAsync"
+  },
+  "POST /2/chat/media/upload/{id}/finalize": {
+    "methodName": "Chat.CreateChatMediaUploadByIdFinalizeAsync"
+  },
+  "POST /2/compliance/jobs": {
+    "methodName": "Compliance.CreateComplianceJobsAsync"
+  },
+  "POST /2/dm_conversations": {
+    "methodName": "DirectMessages.CreateDmConversationsAsync"
+  },
+  "POST /2/dm_conversations/with/{participant_id}/messages": {
+    "methodName": "DirectMessages.CreateDmConversationsWithByParticipantIdMessagesAsync"
+  },
+  "POST /2/dm_conversations/{dm_conversation_id}/messages": {
+    "methodName": "DirectMessages.CreateDmConversationsByDmConversationIdMessagesAsync"
+  },
+  "POST /2/lists": {
+    "methodName": "Lists.CreateListsAsync"
+  },
+  "POST /2/lists/{id}/members": {
+    "methodName": "Lists.CreateListsByIdMembersAsync"
+  },
+  "POST /2/media/metadata": {
+    "methodName": "Media.CreateMediaMetadataAsync"
+  },
+  "POST /2/media/subtitles": {
+    "methodName": "Media.CreateMediaSubtitlesAsync"
+  },
+  "POST /2/media/upload": {
+    "methodName": "Media.CreateMediaUploadAsync"
+  },
+  "POST /2/media/upload/initialize": {
+    "methodName": "Media.CreateMediaUploadInitializeAsync"
+  },
+  "POST /2/media/upload/{id}/append": {
+    "methodName": "Media.CreateMediaUploadByIdAppendAsync"
+  },
+  "POST /2/media/upload/{id}/finalize": {
+    "methodName": "Media.CreateMediaUploadByIdFinalizeAsync"
+  },
+  "POST /2/notes": {
+    "methodName": "CommunityNotes.CreateNotesAsync"
+  },
+  "POST /2/notes/evaluate": {
+    "methodName": "CommunityNotes.CreateNotesEvaluateAsync"
+  },
+  "POST /2/tweets": {
+    "methodName": "Posts.CreateTweetsAsync"
+  },
+  "POST /2/tweets/search/stream/rules": {
+    "methodName": "Stream.CreateTweetsSearchStreamRulesAsync"
+  },
+  "POST /2/tweets/search/webhooks/{webhook_id}": {
+    "methodName": "Webhooks.CreateTweetsSearchWebhooksByWebhookIdAsync"
+  },
+  "POST /2/users/{id}/bookmarks": {
+    "methodName": "Bookmarks.CreateUsersByIdBookmarksAsync"
+  },
+  "POST /2/users/{id}/bookmarks/folders": {
+    "methodName": "Bookmarks.CreateUsersByIdBookmarksFoldersAsync"
+  },
+  "POST /2/users/{id}/dm/block": {
+    "methodName": "Users.CreateUsersByIdDmBlockAsync"
+  },
+  "POST /2/users/{id}/dm/unblock": {
+    "methodName": "Users.CreateUsersByIdDmUnblockAsync"
+  },
+  "POST /2/users/{id}/followed_lists": {
+    "methodName": "Users.CreateUsersByIdFollowedListsAsync"
+  },
+  "POST /2/users/{id}/following": {
+    "methodName": "Users.CreateUsersByIdFollowingAsync"
+  },
+  "POST /2/users/{id}/likes": {
+    "methodName": "Users.CreateUsersByIdLikesAsync"
+  },
+  "POST /2/users/{id}/muting": {
+    "methodName": "Users.CreateUsersByIdMutingAsync"
+  },
+  "POST /2/users/{id}/pinned_lists": {
+    "methodName": "Users.CreateUsersByIdPinnedListsAsync"
+  },
+  "POST /2/users/{id}/public_keys": {
+    "methodName": "Chat.CreateUsersByIdPublicKeysAsync"
+  },
+  "POST /2/users/{id}/retweets": {
+    "methodName": "Users.CreateUsersByIdRetweetsAsync"
+  },
+  "POST /2/webhooks": {
+    "methodName": "Webhooks.CreateWebhooksAsync"
+  },
+  "POST /2/webhooks/replay": {
+    "methodName": "Webhooks.CreateWebhooksReplayAsync"
+  },
+  "PUT /2/activity/subscriptions/{subscription_id}": {
+    "methodName": "Activity.UpdateActivitySubscriptionsBySubscriptionIdAsync"
+  },
+  "PUT /2/bots/{id}": {
+    "methodName": "Bots.UpdateBotsByIdAsync"
+  },
+  "PUT /2/broadcasts/scheduled/{id}": {
+    "methodName": "Broadcasts.UpdateBroadcastsScheduledByIdAsync"
+  },
+  "PUT /2/compliance/jobs/{id}/upload": {
+    "methodName": "Compliance.UpdateComplianceJobsByIdUploadAsync"
+  },
+  "PUT /2/lists/{id}": {
+    "methodName": "Lists.UpdateListsByIdAsync"
+  },
+  "PUT /2/tweets/{tweet_id}/hidden": {
+    "methodName": "Posts.UpdateTweetsByTweetIdHiddenAsync"
+  },
+  "PUT /2/webhooks/{webhook_id}": {
+    "methodName": "Webhooks.UpdateWebhooksByWebhookIdAsync"
+  }
+}

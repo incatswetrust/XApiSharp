@@ -1,0 +1,25 @@
+{
+  "$schemaNote": "GEN-05/GEN-06 override registry. tools/XApiSharp.CodeGen refuses to generate (exit non-zero) if the snapshot contains a top-level oneOf/anyOf/discriminator schema or a multipart-alternate-content-type operation that is NOT listed here. Each entry must carry a reason, source, and status; remove an entry once its upstream construct disappears from the snapshot (GEN-06).",
+  "addedAtUtc": "2026-09-06T19:30:00Z",
+  "source": "docs/adr/0002-code-generation.md (E1 NSwag PoC, run against spec/openapi-snapshot.json sha256 68f24f5f2332bd60127a86e46f5f34d4b45fc1ad4ff19a91b1d24c3ccda7f995)",
+  "unionSchemas": [
+    { "schema": "ActivityStreamingResponsePayload", "branches": 6, "discriminator": true, "reason": "NSwag generates an empty class with zero properties for this discriminated union.", "status": "known-gap-registered", "manualType": null },
+    { "schema": "CreateUsersBookmarkResponse", "branches": 2, "discriminator": false, "reason": "NSwag generates an empty class with zero properties for this oneOf.", "status": "known-gap-registered", "manualType": null },
+    { "schema": "PostComplianceData", "branches": 5, "discriminator": false, "reason": "NSwag generates an empty class with zero properties for this oneOf.", "status": "known-gap-registered", "manualType": null },
+    { "schema": "PostLabelData", "branches": 2, "discriminator": false, "reason": "NSwag generates an empty class with zero properties for this oneOf.", "status": "known-gap-registered", "manualType": null },
+    { "schema": "Problem", "branches": 9, "discriminator": true, "reason": "NSwag generates an empty class with zero properties. This is the RFC7807-style error schema the XApiException hierarchy (ADR 0003) needs status/type/detail/request-id from - must be hand-modeled, not generated.", "status": "known-gap-registered", "manualType": null },
+    { "schema": "StreamLabelsComplianceResponse", "branches": 2, "discriminator": false, "reason": "NSwag generates an empty class with zero properties for this oneOf.", "status": "known-gap-registered", "manualType": null },
+    { "schema": "StreamLikesComplianceResponse", "branches": 2, "discriminator": false, "reason": "NSwag generates an empty class with zero properties for this oneOf.", "status": "known-gap-registered", "manualType": null },
+    { "schema": "StreamPostsComplianceResponse", "branches": 2, "discriminator": false, "reason": "NSwag generates an empty class with zero properties for this oneOf.", "status": "known-gap-registered", "manualType": null },
+    { "schema": "StreamUsersComplianceResponse", "branches": 2, "discriminator": false, "reason": "NSwag generates an empty class with zero properties for this oneOf.", "status": "known-gap-registered", "manualType": null },
+    { "schema": "UserComplianceData", "branches": 9, "discriminator": false, "reason": "NSwag generates an empty class with zero properties for this oneOf.", "status": "known-gap-registered", "manualType": null },
+    { "schema": "CreateDirectMessagesByConversationIdRequest", "branches": 2, "discriminator": false, "reason": "anyOf here is a cross-field 'at least one of text/attachments required' constraint on an otherwise normal object, not a branch-type union. Verified: NSwag generates the full property set correctly (no data loss) - only the cross-field requirement itself is dropped. Needs a hand-written pre-send validation check (API-10), not a replacement type.", "status": "verified-benign-needs-manual-validation", "manualType": null },
+    { "schema": "CreateDirectMessagesByParticipantIdRequest", "branches": 2, "discriminator": false, "reason": "Same pattern as CreateDirectMessagesByConversationIdRequest (anyOf as an 'at least one of text/attachments' constraint). Verified: full property set generated correctly.", "status": "verified-benign-needs-manual-validation", "manualType": null },
+    { "schema": "CreateUsersBookmarkRequest", "branches": 2, "discriminator": false, "reason": "anyOf is an 'at least one of tweet_id/tweet_ids required' constraint. Verified: full property set (folder_id, tweet_id, tweet_ids) generated correctly.", "status": "verified-benign-needs-manual-validation", "manualType": null }
+  ],
+  "multipartOperations": [
+    { "key": "POST /2/media/upload", "reason": "Declares [application/json, multipart/form-data] as alternative content types. NSwag generates a method that accepts the file parameter but never attaches it to the request; always sends application/json.", "status": "known-gap-registered", "manualMethod": null },
+    { "key": "POST /2/media/upload/{id}/append", "reason": "Same dual-content-type pattern as POST /2/media/upload; same NSwag failure mode.", "status": "known-gap-registered", "manualMethod": null },
+    { "key": "POST /2/chat/media/upload/{id}/append", "reason": "Same dual-content-type pattern as POST /2/media/upload; same NSwag failure mode.", "status": "known-gap-registered", "manualMethod": null }
+  ]
+}

@@ -26,6 +26,15 @@ jobs:
       - name: Restore (locked mode)
         run: dotnet restore --locked-mode
 
+      - name: Restore pinned tools (NSwag)
+        run: dotnet tool restore
+
+      - name: Generation guard check (GEN-05/GEN-08/GEN-09)
+        run: dotnet run --project tools/XApiSharp.CodeGen -- guard-check
+
+      - name: Fail if guard-check produced an uncommitted method-name-map change
+        run: git diff --exit-code spec/method-name-map.json
+
       - name: Format check
         run: dotnet format --verify-no-changes
 
@@ -38,7 +47,8 @@ jobs:
       - name: Pack
         run: dotnet pack --configuration Release --no-build --output ./artifacts
 
-  # TODO (stage E1+): add the generation-check job (spec GEN-08 — no diff after
-  # regeneration, no undocumented methods) once tools/XApiSharp.CodeGen exists.
+  # TODO (stage E2+): once tools/XApiSharp.CodeGen `generate` output is actually wired into
+  # src/XApiSharp/Generated/ and committed, add a full "regenerate and diff" job here (GEN-08)
+  # in addition to the guard-check above, which only validates the guard registry today.
   # TODO (stage E8/E9): add the release-candidate and NuGet publish workflows
   # (spec sections 22-23) once a real repository/package owner is configured.
