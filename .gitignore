@@ -31,3 +31,4 @@ coverage*.info
 *.local.json
 .env
 .env.*
+docs/roadmap.md

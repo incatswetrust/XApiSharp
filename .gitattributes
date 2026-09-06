@@ -1,0 +1,12 @@
+# Normalize line endings to LF for all text files, regardless of OS or local
+# git config (core.autocrlf). Prevents Windows checkouts from introducing CRLF,
+# which conflicts with the LF requirement in .editorconfig and breaks
+# `dotnet format --verify-no-changes` on windows-latest CI runners.
+* text=auto eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.snk binary
+*.pfx binary
