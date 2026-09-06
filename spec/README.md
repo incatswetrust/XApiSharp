@@ -19,9 +19,11 @@ See `docs/product-scope.md` for the family breakdown and open E0 items, and
 
 This is a **first-pass inventory**: scope decisions are mechanical (in-scope unless it matches a
 hard exclusion from ТЗ section 3.3), auth/scopes are read directly from the snapshot, but
-`docsReference`, `methodName`, request/response types, and the pagination/streaming/upload
-`flags` are not yet manually confirmed. `overrides/` is still empty — no snapshot/docs
-disagreement has been investigated yet.
+`methodName`, request/response types, and the pagination/streaming/upload `flags` are not yet
+manually confirmed. `docsReference` is filled for 163/190 operations from a docs.x.com
+cross-check — see `overrides/e0-docs-cross-check.md` for the full discrepancy list (0 operations
+documented-with-a-contract are missing from this snapshot; Broadcasts and Bots are fully
+undocumented on docs.x.com despite being present here).
 
 ## Licensing of `openapi-snapshot.json`
 

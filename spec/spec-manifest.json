@@ -4,13 +4,14 @@
   "sha256": "68f24f5f2332bd60127a86e46f5f34d4b45fc1ad4ff19a91b1d24c3ccda7f995",
   "openApiVersion": "3.0.0",
   "upstreamInfoVersion": "2.168",
-  "generatorVersion": null,
-  "overridesVersion": "0",
+  "generatorVersion": "NSwag.ConsoleCore 14.7.1 (JsonLibrary=SystemTextJson)",
+  "overridesVersion": "1",
   "scopeRevision": "1",
   "notes": [
-    "generatorVersion is null: code generation tool not yet chosen (pending E1 PoC per ADR 0002).",
-    "overridesVersion 0: no documented overrides exist yet (spec/overrides/ is empty).",
+    "generatorVersion decided 2026-09-06 per docs/adr/0002-code-generation.md, pinned via .config/dotnet-tools.json. Wrapper (tools/XApiSharp.CodeGen) generation guards not yet implemented.",
+    "overridesVersion 1: spec/overrides/e0-docs-cross-check.md added 2026-09-06 (OpenAPI snapshot vs. docs.x.com discrepancy list). The 10 oneOf schemas + 3 multipart operations found unusable via NSwag (ADR 0002) still need spec/overrides/e1-generation-guard.md once the wrapper lands.",
     "scopeRevision 1: initial inclusion/exclusion rules from ТЗ section 3, applied mechanically at inventory time. Not yet manually reviewed operation-by-operation.",
-    "totalOperations at this snapshot: 190 (156 paths). See spec/endpoint-manifest.json."
+    "totalOperations at this snapshot: 190 (156 paths). See spec/endpoint-manifest.json.",
+    "docsReference filled for 163/190 operations from the docs.x.com cross-check; 27 operations (notably all of Broadcasts and Bots) have no discoverable public doc page — see docs/product-scope.md."
   ]
 }
