@@ -1,0 +1,16 @@
+{
+  "sourceUrl": "https://api.x.com/2/openapi.json",
+  "retrievedAtUtc": "2026-09-06T18:22:51Z",
+  "sha256": "68f24f5f2332bd60127a86e46f5f34d4b45fc1ad4ff19a91b1d24c3ccda7f995",
+  "openApiVersion": "3.0.0",
+  "upstreamInfoVersion": "2.168",
+  "generatorVersion": null,
+  "overridesVersion": "0",
+  "scopeRevision": "1",
+  "notes": [
+    "generatorVersion is null: code generation tool not yet chosen (pending E1 PoC per ADR 0002).",
+    "overridesVersion 0: no documented overrides exist yet (spec/overrides/ is empty).",
+    "scopeRevision 1: initial inclusion/exclusion rules from ТЗ section 3, applied mechanically at inventory time. Not yet manually reviewed operation-by-operation.",
+    "totalOperations at this snapshot: 190 (156 paths). See spec/endpoint-manifest.json."
+  ]
+}

@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageId>XApiSharp</PackageId>
+    <PackageId>XApiSharp.Net</PackageId>
     <Description>Independent, community-maintained C#/.NET SDK for the public X API v2. Not affiliated with or endorsed by X Corp.</Description>
     <PackageTags>x;twitter;api;sdk</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>

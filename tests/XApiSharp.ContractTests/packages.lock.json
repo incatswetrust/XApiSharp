@@ -93,7 +93,7 @@
           "xunit.extensibility.core": "[2.9.2]"
         }
       },
-      "xapisharp": {
+      "XApiSharp.Net": {
         "type": "Project"
       }
     }

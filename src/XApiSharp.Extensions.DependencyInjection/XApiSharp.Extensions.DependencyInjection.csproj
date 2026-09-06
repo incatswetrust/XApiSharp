@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <PackageId>XApiSharp.Extensions.DependencyInjection</PackageId>
+    <PackageId>XApiSharp.Net.Extensions.DependencyInjection</PackageId>
     <Description>Microsoft.Extensions.DependencyInjection integration for XApiSharp.</Description>
     <PackageTags>x;twitter;api;sdk;dependencyinjection</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
