@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/XApiSharp.Extensions.DependencyInjection/XApiSharp.Extensions.DependencyInjection.csproj" />
+    <Project Path="src/XApiSharp/XApiSharp.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/XApiSharp.ContractTests/XApiSharp.ContractTests.csproj" />
+    <Project Path="tests/XApiSharp.IntegrationTests/XApiSharp.IntegrationTests.csproj" />
+    <Project Path="tests/XApiSharp.UnitTests/XApiSharp.UnitTests.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/XApiSharp.CodeGen/XApiSharp.CodeGen.csproj" />
+  </Folder>
+</Solution>

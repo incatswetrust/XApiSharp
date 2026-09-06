@@ -1,0 +1,33 @@
+# Internal planning documents (not part of the public repository)
+x-api-dotnet-sdk-spec.md
+/docs-internal/
+
+# .NET build output
+bin/
+obj/
+artifacts/
+*.user
+
+# Rider / VS / VS Code
+.vs/
+.idea/
+.vscode/
+
+# Test / coverage output
+TestResults/
+coverage*.json
+coverage*.xml
+coverage*.info
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+
+# OS
+.DS_Store
+
+# Secrets / local config
+*.local.json
+.env
+.env.*
