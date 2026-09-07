@@ -179,6 +179,8 @@ internal sealed class RequestExecutor
                     StatusCode = response.StatusCode,
                     Headers = headers,
                     RateLimit = rateLimit,
+                    HasErrors = (body as IXErrorCarryingResponse)?.HasErrors ?? false,
+                    IsPartialSuccess = (body as IXErrorCarryingResponse)?.IsPartialSuccess ?? false,
                 };
             }
         }

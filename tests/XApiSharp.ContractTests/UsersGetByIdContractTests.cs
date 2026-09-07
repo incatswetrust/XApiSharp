@@ -107,6 +107,40 @@ public class UsersGetByIdContractTests
     }
 
     [Fact]
+    public async Task A_200_with_both_data_and_errors_is_reported_as_partial_success_not_silently_dropped()
+    {
+        // Spec section 12.1: "HTTP 200 с частичными ошибками не должен незаметно превращаться в
+        // полностью успешный список" - the errors array must survive alongside a real data payload.
+        const string json = """
+            {
+              "data": {"id": "1", "name": "A", "username": "a"},
+              "errors": [{"type": "https://api.x.com/2/problems/resource-not-found", "title": "Not Found Error", "detail": "..."}]
+            }
+            """;
+        using var handler = new FakeHttpMessageHandler((_, _) => Task.FromResult(SuccessResponse(json)));
+        var client = CreateClient(handler);
+
+        var response = await client.Users.GetByIdAsync(new GetUserRequest { Id = "1" });
+
+        Assert.True(response.HasErrors);
+        Assert.True(response.IsPartialSuccess);
+        Assert.NotNull(response.Body?.Data);
+        Assert.Single(response.Body!.Errors!);
+    }
+
+    [Fact]
+    public async Task A_clean_200_reports_no_errors()
+    {
+        using var handler = new FakeHttpMessageHandler((_, _) => Task.FromResult(SuccessResponse("""{"data":{"id":"1","name":"A","username":"a"}}""")));
+        var client = CreateClient(handler);
+
+        var response = await client.Users.GetByIdAsync(new GetUserRequest { Id = "1" });
+
+        Assert.False(response.HasErrors);
+        Assert.False(response.IsPartialSuccess);
+    }
+
+    [Fact]
     public async Task Maps_a_documented_problem_error_to_XApiException()
     {
         const string problemJson = """
