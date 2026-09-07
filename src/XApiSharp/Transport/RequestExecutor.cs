@@ -34,11 +34,23 @@ internal sealed class RequestExecutor
         _jitterSource = jitterSource;
     }
 
-    public async Task<XResponse<TBody>> SendAsync<TBody>(HttpMethod method, string relativePath, CancellationToken cancellationToken)
+    public Task<XResponse<TBody>> SendAsync<TBody>(HttpMethod method, string relativePath, CancellationToken cancellationToken) =>
+        SendAsync<TBody>(method, relativePath, queryParameters: null, cancellationToken);
+
+    /// <param name="method">HTTP method.</param>
+    /// <param name="relativePath">Path relative to <see cref="XClientOptions.BaseUrl"/>.</param>
+    /// <param name="queryParameters">Optional query parameters, built via
+    /// <see cref="QueryStringBuilder"/> (SER-10) - entries with a null/empty value are omitted,
+    /// never sent as an empty query string.</param>
+    /// <param name="cancellationToken">Caller cancellation, layered under the operation/attempt
+    /// deadlines (spec HTTP-06/07).</param>
+    public async Task<XResponse<TBody>> SendAsync<TBody>(HttpMethod method, string relativePath, IReadOnlyList<(string Name, string? Value)>? queryParameters, CancellationToken cancellationToken)
     {
         // HTTP-06: cancellation must propagate deterministically end to end - do not rely on the
         // HttpClient/handler pipeline to observe an already-cancelled token on its own.
         cancellationToken.ThrowIfCancellationRequested();
+
+        var fullPath = relativePath + (queryParameters is null ? null : QueryStringBuilder.Build(queryParameters));
 
         // HTTP-07: the operation deadline spans the whole call - every attempt, every retry
         // wait, and the body read; the attempt deadline covers a single HTTP send/headers
@@ -55,7 +67,7 @@ internal sealed class RequestExecutor
 
             // HTTP-03: a fresh HttpRequestMessage (and re-run auth prep) on every attempt - a
             // consumed request/refreshed token can't be resent as-is.
-            using var request = new HttpRequestMessage(method, new Uri(_options.BaseUrl, relativePath));
+            using var request = new HttpRequestMessage(method, new Uri(_options.BaseUrl, fullPath));
             await _authenticationProvider.PrepareRequestAsync(request, operationCts.Token).ConfigureAwait(false);
 
             HttpResponseMessage response;
@@ -117,10 +129,18 @@ internal sealed class RequestExecutor
                     };
                 }
 
+                if (response.Content.Headers.ContentLength is { } declaredLength && declaredLength > _options.MaxResponseBufferSize)
+                {
+                    throw new XProtocolException(
+                        $"Response declared Content-Length {declaredLength} bytes, exceeding the configured maximum of {_options.MaxResponseBufferSize} bytes (XClientOptions.MaxResponseBufferSize).",
+                        response.StatusCode);
+                }
+
                 TBody? body;
                 try
                 {
-                    var stream = await response.Content.ReadAsStreamAsync(operationCts.Token).ConfigureAwait(false);
+                    var rawStream = await response.Content.ReadAsStreamAsync(operationCts.Token).ConfigureAwait(false);
+                    var stream = new MaxLengthStream(rawStream, _options.MaxResponseBufferSize);
                     await using (stream.ConfigureAwait(false))
                     {
                         body = await JsonSerializer.DeserializeAsync<TBody>(stream, JsonOptions, operationCts.Token).ConfigureAwait(false);

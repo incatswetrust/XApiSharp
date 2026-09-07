@@ -46,4 +46,12 @@ public sealed class XClientOptions
     /// for why that can still fail: the overall deadline is the real ceiling.
     /// </summary>
     public TimeSpan MaxRetryDelay { get; init; } = TimeSpan.FromSeconds(15);
+
+    /// <summary>
+    /// SER-11: hard ceiling on a buffered (non-streaming) response body, enforced while reading
+    /// even if the server didn't send (or lied about) Content-Length. Default 10 MiB - generous
+    /// for any current JSON response shape, small next to an accidental unbounded download.
+    /// Streaming/media endpoints (E5) will have their own explicit buffer settings, not this one.
+    /// </summary>
+    public long MaxResponseBufferSize { get; init; } = 10 * 1024 * 1024;
 }
