@@ -7475,9 +7475,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Users.GetByIdAsync",
+      "requestType": "XApiSharp.Users.GetUserRequest",
+      "responseType": "XApiSharp.Users.GetUserResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -7486,8 +7486,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "tests/XApiSharp.ContractTests/UsersGetByIdContractTests.cs"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,

@@ -12,18 +12,20 @@ See `docs/product-scope.md` and `spec/spec-manifest.json` for provenance
 
 | Metric | Numerator / Denominator | % |
 | --- | --- | --- |
-| Implementation coverage | 0 / 190 | 0% |
-| Contract coverage | 0 / 190 | 0% |
+| Implementation coverage | 1 / 190 | 0.5% |
+| Contract coverage | 1 / 190 | 0.5% |
 | Live validation coverage | 0 / 190 | 0% |
 
-No operation has a working typed method yet — this repository is still at stage E0/E1
-(inventory and scaffolding only). These numbers will move as E2–E6 land.
+Stage E2 (vertical slice) landed the first typed operation: `GET /2/users/{id}`
+(`Users.GetByIdAsync`), with contract tests covering method/path, ID escaping, auth header,
+success-body deserialization, unknown-field preservation, and the 401/404/429/204 response
+shapes. Bulk implementation of the remaining 189 operations happens in E4/E5.
 
 ## By family
 
 | Family | Operations | Implemented | Contract-tested | Live-validated |
 | --- | --- | --- | --- | --- |
-| Users | 36 | 0 | 0 | 0 |
+| Users | 36 | 1 | 1 | 0 |
 | Stream | 18 | 0 | 0 | 0 |
 | Chat | 16 | 0 | 0 | 0 |
 | Posts | 14 | 0 | 0 | 0 |
