@@ -10,13 +10,20 @@ namespace XApiSharp;
 /// </summary>
 public sealed class XApiClient
 {
-    public XApiClient(HttpClient httpClient, IXAuthenticationProvider authenticationProvider, XClientOptions? options = null)
+    /// <param name="httpClient">Externally owned - never disposed by this type (HTTP-01).</param>
+    /// <param name="authenticationProvider">Prepares auth for every outgoing request.</param>
+    /// <param name="options">Defaults to <c>new XClientOptions()</c> when omitted.</param>
+    /// <param name="timeProvider">Defaults to <see cref="TimeProvider.System"/>. Inject a fake
+    /// provider in tests to control <see cref="XClientOptions.OperationTimeout"/>/
+    /// <see cref="XClientOptions.AttemptTimeout"/> deterministically, without real sleeps.</param>
+    public XApiClient(HttpClient httpClient, IXAuthenticationProvider authenticationProvider, XClientOptions? options = null, TimeProvider? timeProvider = null)
     {
         ArgumentNullException.ThrowIfNull(httpClient);
         ArgumentNullException.ThrowIfNull(authenticationProvider);
 
         var resolvedOptions = options ?? new XClientOptions();
-        var executor = new RequestExecutor(httpClient, authenticationProvider, resolvedOptions);
+        var resolvedTimeProvider = timeProvider ?? TimeProvider.System;
+        var executor = new RequestExecutor(httpClient, authenticationProvider, resolvedOptions, resolvedTimeProvider);
 
         Users = new UsersClient(executor);
     }
