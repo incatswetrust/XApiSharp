@@ -60,6 +60,7 @@ internal sealed class RequestExecutor
 
         var isRetryableMethod = Array.IndexOf(RetryableMethods, method) >= 0;
         var maxAttempts = 1 + _options.MaxRetries;
+        var hasRefreshedForThisCall = false;
 
         for (var attempt = 1; ; attempt++)
         {
@@ -105,6 +106,20 @@ internal sealed class RequestExecutor
 
                 if (!response.IsSuccessStatusCode)
                 {
+                    // Retry table (spec 13.2): "Истёкший OAuth 2.0 access token | Не более
+                    // одного refresh; последующая отправка только при однозначно допустимом
+                    // сценарии" - a 401 means the request was rejected before any side effect
+                    // ran, so retrying once after a refresh is safe even for a write method
+                    // (unlike the transient-5xx/429 retries below, which stay GET/HEAD-only).
+                    if (response.StatusCode == HttpStatusCode.Unauthorized
+                        && !hasRefreshedForThisCall
+                        && _authenticationProvider is IXRefreshableAuthenticationProvider refreshable)
+                    {
+                        hasRefreshedForThisCall = true;
+                        await refreshable.ForceRefreshAsync(operationCts.Token).ConfigureAwait(false);
+                        continue;
+                    }
+
                     if (isRetryableMethod && !isLastAttempt && IsRetryableStatus(response.StatusCode))
                     {
                         var delay = response.StatusCode == HttpStatusCode.TooManyRequests

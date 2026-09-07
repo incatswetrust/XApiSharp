@@ -150,6 +150,27 @@ public sealed class XOAuth2Client
         return SendTokenRequestAsync(formParameters, cancellationToken);
     }
 
+    /// <summary>
+    /// Exchanges a refresh token (only issued when the original authorization request included
+    /// <c>offline.access</c>) for a new access token, per
+    /// https://docs.x.com/fundamentals/authentication/oauth-2-0/authorization-code#refresh-tokens.
+    /// Reuses the same public/confidential client authentication and error mapping as
+    /// <see cref="ExchangeCodeAsync"/> - there is exactly one token endpoint and one request
+    /// shape for both grant types.
+    /// </summary>
+    public Task<XOAuth2TokenResponse> RefreshTokenAsync(string refreshToken, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
+
+        List<KeyValuePair<string, string>> formParameters =
+        [
+            new("grant_type", "refresh_token"),
+            new("refresh_token", refreshToken),
+        ];
+
+        return SendTokenRequestAsync(formParameters, cancellationToken);
+    }
+
     private async Task<XOAuth2TokenResponse> SendTokenRequestAsync(List<KeyValuePair<string, string>> formParameters, CancellationToken cancellationToken)
     {
         // AUTH-04: public clients authenticate via client_id in the body; confidential clients
