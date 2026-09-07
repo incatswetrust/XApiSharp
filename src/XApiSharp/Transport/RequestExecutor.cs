@@ -8,26 +8,30 @@ namespace XApiSharp.Transport;
 
 /// <summary>
 /// The single shared request path every typed endpoint method goes through - auth, sending,
-/// error mapping, and deserialization live here once, not duplicated per endpoint (spec
+/// error mapping, retry, and deserialization live here once, not duplicated per endpoint (spec
 /// section 6.1: "Нельзя генерировать отдельную независимую реализацию retry или авторизации для
-/// каждого endpoint"). Retry/backoff/rate-limit waiting land in a later E3 commit; this covers
-/// the transport-timeout baseline (HTTP-01..12).
+/// каждого endpoint"). Rate-limit *state persistence* across calls (RATE-03..05) lands with the
+/// per-context work in a later E3 commit; this covers per-call retry/backoff (spec section 13.2)
+/// and header-driven 429 waiting (RATE-01/02/06).
 /// </summary>
 internal sealed class RequestExecutor
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly HttpMethod[] RetryableMethods = [HttpMethod.Get, HttpMethod.Head];
 
     private readonly HttpClient _httpClient;
     private readonly IXAuthenticationProvider _authenticationProvider;
     private readonly XClientOptions _options;
     private readonly TimeProvider _timeProvider;
+    private readonly Random _jitterSource;
 
-    public RequestExecutor(HttpClient httpClient, IXAuthenticationProvider authenticationProvider, XClientOptions options, TimeProvider timeProvider)
+    public RequestExecutor(HttpClient httpClient, IXAuthenticationProvider authenticationProvider, XClientOptions options, TimeProvider timeProvider, Random jitterSource)
     {
         _httpClient = httpClient;
         _authenticationProvider = authenticationProvider;
         _options = options;
         _timeProvider = timeProvider;
+        _jitterSource = jitterSource;
     }
 
     public async Task<XResponse<TBody>> SendAsync<TBody>(HttpMethod method, string relativePath, CancellationToken cancellationToken)
@@ -36,84 +40,177 @@ internal sealed class RequestExecutor
         // HttpClient/handler pipeline to observe an already-cancelled token on its own.
         cancellationToken.ThrowIfCancellationRequested();
 
-        // HTTP-07: the operation deadline spans the whole call (auth + every attempt + body
-        // read); the attempt deadline below covers only a single HTTP send/headers phase. Both
-        // are driven by the injected TimeProvider so tests never need a real sleep.
+        // HTTP-07: the operation deadline spans the whole call - every attempt, every retry
+        // wait, and the body read; the attempt deadline covers a single HTTP send/headers
+        // phase. Both are driven by the injected TimeProvider so tests never need a real sleep.
         using var operationTimeoutCts = new CancellationTokenSource(_options.OperationTimeout, _timeProvider);
         using var operationCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, operationTimeoutCts.Token);
 
-        using var request = new HttpRequestMessage(method, new Uri(_options.BaseUrl, relativePath));
-        await _authenticationProvider.PrepareRequestAsync(request, operationCts.Token).ConfigureAwait(false);
+        var isRetryableMethod = Array.IndexOf(RetryableMethods, method) >= 0;
+        var maxAttempts = 1 + _options.MaxRetries;
 
-        HttpResponseMessage response;
-        using (var attemptTimeoutCts = new CancellationTokenSource(_options.AttemptTimeout, _timeProvider))
-        using (var attemptCts = CancellationTokenSource.CreateLinkedTokenSource(operationCts.Token, attemptTimeoutCts.Token))
+        for (var attempt = 1; ; attempt++)
         {
-            try
-            {
-                response = await _httpClient
-                    .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, attemptCts.Token)
-                    .ConfigureAwait(false);
-            }
-            catch (HttpRequestException ex)
-            {
-                throw new XTransportException("Request failed at the transport level.", ex);
-            }
-            catch (OperationCanceledException ex)
-            {
-                throw ClassifyCancellation(ex, new CancellationContext(cancellationToken, operationCts.Token, attemptCts.Token));
-            }
-        }
+            var isLastAttempt = attempt >= maxAttempts;
 
-        using (response)
-        {
-            var headers = ToHeaderDictionary(response);
-            var rateLimit = XRateLimitInfo.FromHeaders(response.Headers);
+            // HTTP-03: a fresh HttpRequestMessage (and re-run auth prep) on every attempt - a
+            // consumed request/refreshed token can't be resent as-is.
+            using var request = new HttpRequestMessage(method, new Uri(_options.BaseUrl, relativePath));
+            await _authenticationProvider.PrepareRequestAsync(request, operationCts.Token).ConfigureAwait(false);
 
-            if (!response.IsSuccessStatusCode)
+            HttpResponseMessage response;
+            using (var attemptTimeoutCts = new CancellationTokenSource(_options.AttemptTimeout, _timeProvider))
+            using (var attemptCts = CancellationTokenSource.CreateLinkedTokenSource(operationCts.Token, attemptTimeoutCts.Token))
             {
-                throw await BuildExceptionAsync(response, cancellationToken, operationCts.Token).ConfigureAwait(false);
+                try
+                {
+                    response = await _httpClient
+                        .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, attemptCts.Token)
+                        .ConfigureAwait(false);
+                }
+                catch (HttpRequestException ex)
+                {
+                    // Retry table (spec 13.2): "GET/HEAD с временной сетевой ошибкой ... |
+                    // Ограниченный exponential backoff с jitter". Writes are never retried here.
+                    if (isRetryableMethod && !isLastAttempt)
+                    {
+                        await DelayAsync(ComputeBackoffDelay(attempt), operationCts.Token, cancellationToken).ConfigureAwait(false);
+                        continue;
+                    }
+
+                    throw new XTransportException("Request failed at the transport level.", ex);
+                }
+                catch (OperationCanceledException ex)
+                {
+                    throw ClassifyCancellation(ex, new CancellationContext(cancellationToken, operationCts.Token, attemptCts.Token));
+                }
             }
 
-            if (response.StatusCode == HttpStatusCode.NoContent || response.Content.Headers.ContentLength == 0)
+            using (response)
             {
+                var headers = ToHeaderDictionary(response);
+                var rateLimit = XRateLimitInfo.FromHeaders(response.Headers);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (isRetryableMethod && !isLastAttempt && IsRetryableStatus(response.StatusCode))
+                    {
+                        var delay = response.StatusCode == HttpStatusCode.TooManyRequests
+                            ? ComputeRateLimitDelay(response, rateLimit) ?? ComputeBackoffDelay(attempt)
+                            : ComputeBackoffDelay(attempt);
+
+                        await DelayAsync(delay, operationCts.Token, cancellationToken).ConfigureAwait(false);
+                        continue;
+                    }
+
+                    throw await BuildExceptionAsync(response, cancellationToken, operationCts.Token).ConfigureAwait(false);
+                }
+
+                if (response.StatusCode == HttpStatusCode.NoContent || response.Content.Headers.ContentLength == 0)
+                {
+                    return new XResponse<TBody>
+                    {
+                        Body = default,
+                        StatusCode = response.StatusCode,
+                        Headers = headers,
+                        RateLimit = rateLimit,
+                    };
+                }
+
+                TBody? body;
+                try
+                {
+                    var stream = await response.Content.ReadAsStreamAsync(operationCts.Token).ConfigureAwait(false);
+                    await using (stream.ConfigureAwait(false))
+                    {
+                        body = await JsonSerializer.DeserializeAsync<TBody>(stream, JsonOptions, operationCts.Token).ConfigureAwait(false);
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    throw new XProtocolException(
+                        "Response body was not valid JSON for the expected contract.",
+                        response.StatusCode,
+                        innerException: ex);
+                }
+                catch (OperationCanceledException ex)
+                {
+                    throw ClassifyCancellation(ex, new CancellationContext(cancellationToken, operationCts.Token, Attempt: null));
+                }
+
                 return new XResponse<TBody>
                 {
-                    Body = default,
+                    Body = body,
                     StatusCode = response.StatusCode,
                     Headers = headers,
                     RateLimit = rateLimit,
                 };
             }
+        }
+    }
 
-            TBody? body;
-            try
+    /// <summary>
+    /// Only GET/HEAD ever retry (spec 13.2: "POST/PATCH/DELETE ... по умолчанию не повторять
+    /// автоматически"). This applies to a documented temporary 429 too, deliberately more
+    /// conservative than the spec table's literal per-row reading: a write that returned 429
+    /// might still have been applied server-side, and retrying it risks a duplicate write, which
+    /// the spec treats as strictly worse than an extra failed read retry.
+    /// </summary>
+    private static bool IsRetryableStatus(HttpStatusCode status) => status is
+        HttpStatusCode.InternalServerError or
+        HttpStatusCode.BadGateway or
+        HttpStatusCode.ServiceUnavailable or
+        HttpStatusCode.GatewayTimeout or
+        HttpStatusCode.TooManyRequests;
+
+    /// <summary>RATE-01/06: prefer the server's own wait hint (Retry-After, then the rate-limit
+    /// reset header) over guessing. Returns null only when neither is present/parsable.</summary>
+    private TimeSpan? ComputeRateLimitDelay(HttpResponseMessage response, XRateLimitInfo? rateLimit)
+    {
+        if (response.Headers.RetryAfter is { } retryAfter)
+        {
+            if (retryAfter.Delta is { } delta)
             {
-                var stream = await response.Content.ReadAsStreamAsync(operationCts.Token).ConfigureAwait(false);
-                await using (stream.ConfigureAwait(false))
-                {
-                    body = await JsonSerializer.DeserializeAsync<TBody>(stream, JsonOptions, operationCts.Token).ConfigureAwait(false);
-                }
-            }
-            catch (JsonException ex)
-            {
-                throw new XProtocolException(
-                    "Response body was not valid JSON for the expected contract.",
-                    response.StatusCode,
-                    innerException: ex);
-            }
-            catch (OperationCanceledException ex)
-            {
-                throw ClassifyCancellation(ex, new CancellationContext(cancellationToken, operationCts.Token, Attempt: null));
+                return delta;
             }
 
-            return new XResponse<TBody>
+            if (retryAfter.Date is { } date)
             {
-                Body = body,
-                StatusCode = response.StatusCode,
-                Headers = headers,
-                RateLimit = rateLimit,
-            };
+                var now = _timeProvider.GetUtcNow();
+                return date > now ? date - now : TimeSpan.Zero;
+            }
+        }
+
+        if (rateLimit?.Reset is { } reset)
+        {
+            var now = _timeProvider.GetUtcNow();
+            return reset > now ? reset - now : TimeSpan.Zero;
+        }
+
+        return null;
+    }
+
+    /// <summary>Exponential backoff capped at <see cref="XClientOptions.MaxRetryDelay"/>, with
+    /// full jitter (spec: "jitter через контролируемый random" - <see cref="_jitterSource"/> is
+    /// injectable so tests get deterministic delays).</summary>
+    private TimeSpan ComputeBackoffDelay(int attemptNumber)
+    {
+        var exponential = TimeSpan.FromMilliseconds(200 * Math.Pow(2, attemptNumber - 1));
+        var capped = exponential > _options.MaxRetryDelay ? _options.MaxRetryDelay : exponential;
+        return capped * _jitterSource.NextDouble();
+    }
+
+    /// <summary>RATE-06: the wait before a retry is cancellable and bounded by the same
+    /// operation deadline as everything else - it is not a separate, unbounded sleep.</summary>
+    private async Task DelayAsync(TimeSpan delay, CancellationToken operationToken, CancellationToken callerToken)
+    {
+        try
+        {
+            await Task.Delay(delay, _timeProvider, operationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException ex)
+        {
+            throw ClassifyCancellation(ex, new CancellationContext(callerToken, operationToken, Attempt: null));
         }
     }
 

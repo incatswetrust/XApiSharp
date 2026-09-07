@@ -152,13 +152,15 @@ public class UsersGetByIdContractTests
     [Fact]
     public async Task Maps_429_to_XRateLimitException_with_retry_after()
     {
+        // MaxRetries: 0 - this checks the exception mapping in isolation from retry behavior.
+        // Retry-then-give-up-within-budget for 429 is covered by RetryTests in UnitTests.
         using var handler = new FakeHttpMessageHandler((_, _) =>
         {
             var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
             response.Headers.RetryAfter = new System.Net.Http.Headers.RetryConditionHeaderValue(TimeSpan.FromSeconds(30));
             return Task.FromResult(response);
         });
-        var client = CreateClient(handler);
+        var client = CreateClient(handler, options: new XClientOptions { MaxRetries = 0 });
 
         var ex = await Assert.ThrowsAsync<XRateLimitException>(
             () => client.Users.GetByIdAsync(new GetUserRequest { Id = "1" }));
@@ -187,9 +189,9 @@ public class UsersGetByIdContractTests
         };
     }
 
-    private static XApiClient CreateClient(HttpMessageHandler handler, string token = "token")
+    private static XApiClient CreateClient(HttpMessageHandler handler, string token = "token", XClientOptions? options = null)
     {
         var httpClient = new HttpClient(handler);
-        return new XApiClient(httpClient, new BearerTokenAuthenticationProvider(token));
+        return new XApiClient(httpClient, new BearerTokenAuthenticationProvider(token), options);
     }
 }

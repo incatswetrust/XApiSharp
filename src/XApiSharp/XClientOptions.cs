@@ -1,9 +1,6 @@
 namespace XApiSharp;
 
-/// <summary>
-/// Client-wide settings. Retry/backoff policy (spec section 13.2) is added in a later E3 commit;
-/// this covers the transport-level timeouts (spec HTTP-07).
-/// </summary>
+/// <summary>Client-wide settings for transport timeouts and retry policy (spec sections 11, 13).</summary>
 public sealed class XClientOptions
 {
     /// <summary>
@@ -18,9 +15,7 @@ public sealed class XClientOptions
     public TimeSpan OperationTimeout { get; init; } = TimeSpan.FromSeconds(30);
 
     /// <summary>
-    /// Deadline for a single HTTP attempt (spec HTTP-07). Until retry lands, this has the same
-    /// practical effect as <see cref="OperationTimeout"/> for a single-attempt call; it becomes
-    /// meaningful once each retry gets its own fresh attempt window.
+    /// Deadline for a single HTTP attempt (spec HTTP-07) - each retry gets its own fresh window.
     /// </summary>
     /// <remarks>
     /// HTTP-08: the external <see cref="HttpClient"/> passed to <see cref="XApiClient"/> has its
@@ -35,4 +30,20 @@ public sealed class XClientOptions
     /// on its own.
     /// </remarks>
     public TimeSpan AttemptTimeout { get; init; } = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// Retries after the initial attempt, for GET/HEAD requests only on a transient network
+    /// error, an allowed 5xx, or a documented temporary 429 (spec section 13.2). Writes are
+    /// never retried automatically regardless of this setting. Default 2 - "не более двух
+    /// повторов после исходной попытки".
+    /// </summary>
+    public int MaxRetries { get; init; } = 2;
+
+    /// <summary>
+    /// Cap on a single computed backoff delay (spec section 13.2: "максимальная отдельная
+    /// задержка 15 секунд"). A 429 response's own Retry-After/reset hint is honored even if it
+    /// exceeds this cap - see <see cref="XClientOptions"/> remarks on <see cref="OperationTimeout"/>
+    /// for why that can still fail: the overall deadline is the real ceiling.
+    /// </summary>
+    public TimeSpan MaxRetryDelay { get; init; } = TimeSpan.FromSeconds(15);
 }

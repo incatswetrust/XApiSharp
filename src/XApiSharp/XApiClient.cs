@@ -16,14 +16,18 @@ public sealed class XApiClient
     /// <param name="timeProvider">Defaults to <see cref="TimeProvider.System"/>. Inject a fake
     /// provider in tests to control <see cref="XClientOptions.OperationTimeout"/>/
     /// <see cref="XClientOptions.AttemptTimeout"/> deterministically, without real sleeps.</param>
-    public XApiClient(HttpClient httpClient, IXAuthenticationProvider authenticationProvider, XClientOptions? options = null, TimeProvider? timeProvider = null)
+    /// <param name="retryJitterSource">Defaults to <see cref="Random.Shared"/>. Inject a seeded
+    /// <see cref="Random"/> in tests for deterministic retry-delay assertions (spec: "jitter
+    /// через контролируемый random").</param>
+    public XApiClient(HttpClient httpClient, IXAuthenticationProvider authenticationProvider, XClientOptions? options = null, TimeProvider? timeProvider = null, Random? retryJitterSource = null)
     {
         ArgumentNullException.ThrowIfNull(httpClient);
         ArgumentNullException.ThrowIfNull(authenticationProvider);
 
         var resolvedOptions = options ?? new XClientOptions();
         var resolvedTimeProvider = timeProvider ?? TimeProvider.System;
-        var executor = new RequestExecutor(httpClient, authenticationProvider, resolvedOptions, resolvedTimeProvider);
+        var resolvedJitterSource = retryJitterSource ?? Random.Shared;
+        var executor = new RequestExecutor(httpClient, authenticationProvider, resolvedOptions, resolvedTimeProvider, resolvedJitterSource);
 
         Users = new UsersClient(executor);
     }
