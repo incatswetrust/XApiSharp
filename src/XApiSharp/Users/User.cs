@@ -33,7 +33,7 @@ public sealed class User
     public bool? Verified { get; init; }
 
     [JsonPropertyName("verified_type")]
-    public string? VerifiedType { get; init; }
+    public VerifiedType? VerifiedType { get; init; }
 
     [JsonPropertyName("verified_followers_count")]
     public int? VerifiedFollowersCount { get; init; }

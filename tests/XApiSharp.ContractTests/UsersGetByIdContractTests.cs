@@ -107,6 +107,40 @@ public class UsersGetByIdContractTests
     }
 
     [Fact]
+    public async Task A_200_with_both_data_and_errors_is_reported_as_partial_success_not_silently_dropped()
+    {
+        // Spec section 12.1: "HTTP 200 с частичными ошибками не должен незаметно превращаться в
+        // полностью успешный список" - the errors array must survive alongside a real data payload.
+        const string json = """
+            {
+              "data": {"id": "1", "name": "A", "username": "a"},
+              "errors": [{"type": "https://api.x.com/2/problems/resource-not-found", "title": "Not Found Error", "detail": "..."}]
+            }
+            """;
+        using var handler = new FakeHttpMessageHandler((_, _) => Task.FromResult(SuccessResponse(json)));
+        var client = CreateClient(handler);
+
+        var response = await client.Users.GetByIdAsync(new GetUserRequest { Id = "1" });
+
+        Assert.True(response.HasErrors);
+        Assert.True(response.IsPartialSuccess);
+        Assert.NotNull(response.Body?.Data);
+        Assert.Single(response.Body!.Errors!);
+    }
+
+    [Fact]
+    public async Task A_clean_200_reports_no_errors()
+    {
+        using var handler = new FakeHttpMessageHandler((_, _) => Task.FromResult(SuccessResponse("""{"data":{"id":"1","name":"A","username":"a"}}""")));
+        var client = CreateClient(handler);
+
+        var response = await client.Users.GetByIdAsync(new GetUserRequest { Id = "1" });
+
+        Assert.False(response.HasErrors);
+        Assert.False(response.IsPartialSuccess);
+    }
+
+    [Fact]
     public async Task Maps_a_documented_problem_error_to_XApiException()
     {
         const string problemJson = """
@@ -152,13 +186,15 @@ public class UsersGetByIdContractTests
     [Fact]
     public async Task Maps_429_to_XRateLimitException_with_retry_after()
     {
+        // MaxRetries: 0 - this checks the exception mapping in isolation from retry behavior.
+        // Retry-then-give-up-within-budget for 429 is covered by RetryTests in UnitTests.
         using var handler = new FakeHttpMessageHandler((_, _) =>
         {
             var response = new HttpResponseMessage(HttpStatusCode.TooManyRequests);
             response.Headers.RetryAfter = new System.Net.Http.Headers.RetryConditionHeaderValue(TimeSpan.FromSeconds(30));
             return Task.FromResult(response);
         });
-        var client = CreateClient(handler);
+        var client = CreateClient(handler, options: new XClientOptions { MaxRetries = 0 });
 
         var ex = await Assert.ThrowsAsync<XRateLimitException>(
             () => client.Users.GetByIdAsync(new GetUserRequest { Id = "1" }));
@@ -187,9 +223,9 @@ public class UsersGetByIdContractTests
         };
     }
 
-    private static XApiClient CreateClient(HttpMessageHandler handler, string token = "token")
+    private static XApiClient CreateClient(HttpMessageHandler handler, string token = "token", XClientOptions? options = null)
     {
         var httpClient = new HttpClient(handler);
-        return new XApiClient(httpClient, new BearerTokenAuthenticationProvider(token));
+        return new XApiClient(httpClient, new BearerTokenAuthenticationProvider(token), options);
     }
 }
