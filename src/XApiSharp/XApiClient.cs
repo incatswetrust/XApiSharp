@@ -1,5 +1,21 @@
+using XApiSharp.Account;
+using XApiSharp.Articles;
 using XApiSharp.Authentication;
+using XApiSharp.Bots;
+using XApiSharp.Broadcasts;
+using XApiSharp.Communities;
+using XApiSharp.CommunityNotes;
+using XApiSharp.Compliance;
+using XApiSharp.Connections;
+using XApiSharp.DirectMessages;
+using XApiSharp.General;
+using XApiSharp.Lists;
+using XApiSharp.News;
+using XApiSharp.Posts;
+using XApiSharp.Spaces;
 using XApiSharp.Transport;
+using XApiSharp.Trends;
+using XApiSharp.Usage;
 using XApiSharp.Users;
 
 namespace XApiSharp;
@@ -30,7 +46,55 @@ public sealed class XApiClient
         var executor = new RequestExecutor(httpClient, authenticationProvider, resolvedOptions, resolvedTimeProvider, resolvedJitterSource);
 
         Users = new UsersClient(executor);
+        Posts = new PostsClient(executor);
+        Lists = new ListsClient(executor);
+        DirectMessages = new DirectMessagesClient(executor);
+        Spaces = new SpacesClient(executor);
+        CommunityNotes = new CommunityNotesClient(executor);
+        Communities = new CommunitiesClient(executor);
+        Articles = new ArticlesClient(executor);
+        Trends = new TrendsClient(executor);
+        News = new NewsClient(executor);
+        Usage = new UsageClient(executor);
+        Account = new AccountClient(executor);
+        General = new GeneralClient(executor);
+        Compliance = new ComplianceClient(executor);
+        Connections = new ConnectionsClient(executor);
+        Bots = new BotsClient(executor);
+        Broadcasts = new BroadcastsClient(executor);
     }
 
     public UsersClient Users { get; }
+
+    public PostsClient Posts { get; }
+
+    public ListsClient Lists { get; }
+
+    public DirectMessagesClient DirectMessages { get; }
+
+    public SpacesClient Spaces { get; }
+
+    public CommunityNotesClient CommunityNotes { get; }
+
+    public CommunitiesClient Communities { get; }
+
+    public ArticlesClient Articles { get; }
+
+    public TrendsClient Trends { get; }
+
+    public NewsClient News { get; }
+
+    public UsageClient Usage { get; }
+
+    public AccountClient Account { get; }
+
+    public GeneralClient General { get; }
+
+    public ComplianceClient Compliance { get; }
+
+    public ConnectionsClient Connections { get; }
+
+    public BotsClient Bots { get; }
+
+    public BroadcastsClient Broadcasts { get; }
 }
