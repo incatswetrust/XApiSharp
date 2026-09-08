@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text.Json;
 using XApiSharp.Authentication;
 using XApiSharp.Errors;
@@ -35,7 +36,7 @@ internal sealed class RequestExecutor
     }
 
     public Task<XResponse<TBody>> SendAsync<TBody>(HttpMethod method, string relativePath, CancellationToken cancellationToken) =>
-        SendAsync<TBody>(method, relativePath, queryParameters: null, cancellationToken);
+        SendAsync<TBody>(method, relativePath, jsonBody: null, queryParameters: null, cancellationToken);
 
     /// <param name="method">HTTP method.</param>
     /// <param name="relativePath">Path relative to <see cref="XClientOptions.BaseUrl"/>.</param>
@@ -44,7 +45,68 @@ internal sealed class RequestExecutor
     /// never sent as an empty query string.</param>
     /// <param name="cancellationToken">Caller cancellation, layered under the operation/attempt
     /// deadlines (spec HTTP-06/07).</param>
-    public async Task<XResponse<TBody>> SendAsync<TBody>(HttpMethod method, string relativePath, IReadOnlyList<(string Name, string? Value)>? queryParameters, CancellationToken cancellationToken)
+    public Task<XResponse<TBody>> SendAsync<TBody>(HttpMethod method, string relativePath, IReadOnlyList<(string Name, string? Value)>? queryParameters, CancellationToken cancellationToken) =>
+        SendAsync<TBody>(method, relativePath, jsonBody: null, queryParameters, cancellationToken);
+
+    /// <param name="method">HTTP method.</param>
+    /// <param name="relativePath">Path relative to <see cref="XClientOptions.BaseUrl"/>.</param>
+    /// <param name="jsonBody">Serialized as the request's JSON body when non-null
+    /// (<c>application/json</c>). Re-serialized fresh on every retry attempt, same as the rest of
+    /// the request (HTTP-03) - a request body isn't a stream that gets consumed once.</param>
+    /// <param name="queryParameters">Optional query parameters, built via
+    /// <see cref="QueryStringBuilder"/> (SER-10) - entries with a null/empty value are omitted,
+    /// never sent as an empty query string.</param>
+    /// <param name="cancellationToken">Caller cancellation, layered under the operation/attempt
+    /// deadlines (spec HTTP-06/07).</param>
+    public Task<XResponse<TBody>> SendAsync<TBody>(HttpMethod method, string relativePath, object? jsonBody, IReadOnlyList<(string Name, string? Value)>? queryParameters, CancellationToken cancellationToken) =>
+        ExecuteAsync(method, relativePath, jsonBody, binaryBody: null, queryParameters, ReadJsonBodyAsync<TBody>, cancellationToken);
+
+    /// <summary>
+    /// Same auth/retry/error-mapping path as <see cref="SendAsync{TBody}(HttpMethod, string, object?, IReadOnlyList{ValueTuple{string, string?}}?, CancellationToken)"/>,
+    /// but for a binary response (e.g. DM media download) instead of JSON (spec section 9: "поддерживаются
+    /// пустые, бинарные и специфические ответы"). Buffered, not streamed back to the caller -
+    /// bounded by the same <see cref="XClientOptions.MaxResponseBufferSize"/> as every other
+    /// response; genuinely large media transfer is the chunked-upload family's concern (E5), not
+    /// this simple download.
+    /// </summary>
+    public Task<XResponse<byte[]>> SendForBytesAsync(HttpMethod method, string relativePath, CancellationToken cancellationToken) =>
+        ExecuteAsync<byte[]>(method, relativePath, jsonBody: null, binaryBody: null, queryParameters: null, ReadBytesBodyAsync, cancellationToken);
+
+    /// <param name="method">HTTP method.</param>
+    /// <param name="relativePath">Path relative to <see cref="XClientOptions.BaseUrl"/>.</param>
+    /// <param name="queryParameters">Optional query parameters, built via
+    /// <see cref="QueryStringBuilder"/> (SER-10).</param>
+    /// <param name="cancellationToken">Caller cancellation, layered under the operation/attempt
+    /// deadlines (spec HTTP-06/07).</param>
+    public Task<XResponse<byte[]>> SendForBytesAsync(HttpMethod method, string relativePath, IReadOnlyList<(string Name, string? Value)>? queryParameters, CancellationToken cancellationToken) =>
+        ExecuteAsync<byte[]>(method, relativePath, jsonBody: null, binaryBody: null, queryParameters, ReadBytesBodyAsync, cancellationToken);
+
+    /// <summary>
+    /// Same as <see cref="SendAsync{TBody}(HttpMethod, string, object?, IReadOnlyList{ValueTuple{string, string?}}?, CancellationToken)"/>
+    /// but for an <c>application/octet-stream</c> request body (e.g. compliance job submission
+    /// upload) instead of JSON - the request-side counterpart to the binary-response overloads
+    /// above.
+    /// </summary>
+    public Task<XResponse<TBody>> SendBytesAsync<TBody>(HttpMethod method, string relativePath, byte[] binaryBody, IReadOnlyList<(string Name, string? Value)>? queryParameters, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(binaryBody);
+
+        return ExecuteAsync(method, relativePath, jsonBody: null, binaryBody, queryParameters, ReadJsonBodyAsync<TBody>, cancellationToken);
+    }
+
+    /// <summary>
+    /// The shared attempt loop (auth prep, transient-error/429/401-refresh retry, error mapping)
+    /// every <c>Send*Async</c> overload goes through - only what happens with a *successful*
+    /// response varies, via <paramref name="readBody"/>.
+    /// </summary>
+    private async Task<XResponse<TBody>> ExecuteAsync<TBody>(
+        HttpMethod method,
+        string relativePath,
+        object? jsonBody,
+        byte[]? binaryBody,
+        IReadOnlyList<(string Name, string? Value)>? queryParameters,
+        Func<HttpResponseMessage, IReadOnlyDictionary<string, IReadOnlyList<string>>, XRateLimitInfo?, CancellationToken, CancellationToken, Task<XResponse<TBody>>> readBody,
+        CancellationToken cancellationToken)
     {
         // HTTP-06: cancellation must propagate deterministically end to end - do not rely on the
         // HttpClient/handler pipeline to observe an already-cancelled token on its own.
@@ -69,6 +131,16 @@ internal sealed class RequestExecutor
             // HTTP-03: a fresh HttpRequestMessage (and re-run auth prep) on every attempt - a
             // consumed request/refreshed token can't be resent as-is.
             using var request = new HttpRequestMessage(method, new Uri(_options.BaseUrl, fullPath));
+            if (jsonBody is not null)
+            {
+                request.Content = JsonContent.Create(jsonBody, jsonBody.GetType(), options: JsonOptions);
+            }
+            else if (binaryBody is not null)
+            {
+                request.Content = new ByteArrayContent(binaryBody);
+                request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            }
+
             await _authenticationProvider.PrepareRequestAsync(request, operationCts.Token).ConfigureAwait(false);
 
             HttpResponseMessage response;
@@ -133,57 +205,108 @@ internal sealed class RequestExecutor
                     throw await BuildExceptionAsync(response, cancellationToken, operationCts.Token).ConfigureAwait(false);
                 }
 
-                if (response.StatusCode == HttpStatusCode.NoContent || response.Content.Headers.ContentLength == 0)
-                {
-                    return new XResponse<TBody>
-                    {
-                        Body = default,
-                        StatusCode = response.StatusCode,
-                        Headers = headers,
-                        RateLimit = rateLimit,
-                    };
-                }
-
-                if (response.Content.Headers.ContentLength is { } declaredLength && declaredLength > _options.MaxResponseBufferSize)
-                {
-                    throw new XProtocolException(
-                        $"Response declared Content-Length {declaredLength} bytes, exceeding the configured maximum of {_options.MaxResponseBufferSize} bytes (XClientOptions.MaxResponseBufferSize).",
-                        response.StatusCode);
-                }
-
-                TBody? body;
-                try
-                {
-                    var rawStream = await response.Content.ReadAsStreamAsync(operationCts.Token).ConfigureAwait(false);
-                    var stream = new MaxLengthStream(rawStream, _options.MaxResponseBufferSize);
-                    await using (stream.ConfigureAwait(false))
-                    {
-                        body = await JsonSerializer.DeserializeAsync<TBody>(stream, JsonOptions, operationCts.Token).ConfigureAwait(false);
-                    }
-                }
-                catch (JsonException ex)
-                {
-                    throw new XProtocolException(
-                        "Response body was not valid JSON for the expected contract.",
-                        response.StatusCode,
-                        innerException: ex);
-                }
-                catch (OperationCanceledException ex)
-                {
-                    throw ClassifyCancellation(ex, new CancellationContext(cancellationToken, operationCts.Token, Attempt: null));
-                }
-
-                return new XResponse<TBody>
-                {
-                    Body = body,
-                    StatusCode = response.StatusCode,
-                    Headers = headers,
-                    RateLimit = rateLimit,
-                    HasErrors = (body as IXErrorCarryingResponse)?.HasErrors ?? false,
-                    IsPartialSuccess = (body as IXErrorCarryingResponse)?.IsPartialSuccess ?? false,
-                };
+                return await readBody(response, headers, rateLimit, cancellationToken, operationCts.Token).ConfigureAwait(false);
             }
         }
+    }
+
+    private async Task<XResponse<TBody>> ReadJsonBodyAsync<TBody>(HttpResponseMessage response, IReadOnlyDictionary<string, IReadOnlyList<string>> headers, XRateLimitInfo? rateLimit, CancellationToken callerToken, CancellationToken operationToken)
+    {
+        if (response.StatusCode == HttpStatusCode.NoContent || response.Content.Headers.ContentLength == 0)
+        {
+            return new XResponse<TBody>
+            {
+                Body = default,
+                StatusCode = response.StatusCode,
+                Headers = headers,
+                RateLimit = rateLimit,
+            };
+        }
+
+        if (response.Content.Headers.ContentLength is { } declaredLength && declaredLength > _options.MaxResponseBufferSize)
+        {
+            throw new XProtocolException(
+                $"Response declared Content-Length {declaredLength} bytes, exceeding the configured maximum of {_options.MaxResponseBufferSize} bytes (XClientOptions.MaxResponseBufferSize).",
+                response.StatusCode);
+        }
+
+        TBody? body;
+        try
+        {
+            var rawStream = await response.Content.ReadAsStreamAsync(operationToken).ConfigureAwait(false);
+            var stream = new MaxLengthStream(rawStream, _options.MaxResponseBufferSize);
+            await using (stream.ConfigureAwait(false))
+            {
+                body = await JsonSerializer.DeserializeAsync<TBody>(stream, JsonOptions, operationToken).ConfigureAwait(false);
+            }
+        }
+        catch (JsonException ex)
+        {
+            throw new XProtocolException(
+                "Response body was not valid JSON for the expected contract.",
+                response.StatusCode,
+                innerException: ex);
+        }
+        catch (OperationCanceledException ex)
+        {
+            throw ClassifyCancellation(ex, new CancellationContext(callerToken, operationToken, Attempt: null));
+        }
+
+        return new XResponse<TBody>
+        {
+            Body = body,
+            StatusCode = response.StatusCode,
+            Headers = headers,
+            RateLimit = rateLimit,
+            HasErrors = (body as IXErrorCarryingResponse)?.HasErrors ?? false,
+            IsPartialSuccess = (body as IXErrorCarryingResponse)?.IsPartialSuccess ?? false,
+        };
+    }
+
+    private async Task<XResponse<byte[]>> ReadBytesBodyAsync(HttpResponseMessage response, IReadOnlyDictionary<string, IReadOnlyList<string>> headers, XRateLimitInfo? rateLimit, CancellationToken callerToken, CancellationToken operationToken)
+    {
+        if (response.StatusCode == HttpStatusCode.NoContent || response.Content.Headers.ContentLength == 0)
+        {
+            return new XResponse<byte[]>
+            {
+                Body = [],
+                StatusCode = response.StatusCode,
+                Headers = headers,
+                RateLimit = rateLimit,
+            };
+        }
+
+        if (response.Content.Headers.ContentLength is { } declaredLength && declaredLength > _options.MaxResponseBufferSize)
+        {
+            throw new XProtocolException(
+                $"Response declared Content-Length {declaredLength} bytes, exceeding the configured maximum of {_options.MaxResponseBufferSize} bytes (XClientOptions.MaxResponseBufferSize).",
+                response.StatusCode);
+        }
+
+        byte[] body;
+        try
+        {
+            var rawStream = await response.Content.ReadAsStreamAsync(operationToken).ConfigureAwait(false);
+            var stream = new MaxLengthStream(rawStream, _options.MaxResponseBufferSize);
+            await using (stream.ConfigureAwait(false))
+            {
+                using var buffer = new MemoryStream();
+                await stream.CopyToAsync(buffer, operationToken).ConfigureAwait(false);
+                body = buffer.ToArray();
+            }
+        }
+        catch (OperationCanceledException ex)
+        {
+            throw ClassifyCancellation(ex, new CancellationContext(callerToken, operationToken, Attempt: null));
+        }
+
+        return new XResponse<byte[]>
+        {
+            Body = body,
+            StatusCode = response.StatusCode,
+            Headers = headers,
+            RateLimit = rateLimit,
+        };
     }
 
     /// <summary>

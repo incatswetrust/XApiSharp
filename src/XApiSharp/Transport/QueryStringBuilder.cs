@@ -42,4 +42,10 @@ internal static class QueryStringBuilder
     /// keys. Returns null for an empty/null collection so <see cref="Build"/> omits it.</summary>
     public static string? JoinCommaSeparated(IReadOnlyCollection<string>? values) =>
         values is null || values.Count == 0 ? null : string.Join(',', values);
+
+    /// <summary>Same convention as <see cref="JoinCommaSeparated(IReadOnlyCollection{string}?)"/>,
+    /// for the <c>*.fields</c>/<c>expansions</c> enums (SER-05) shared across families -
+    /// <paramref name="toApiValue"/> is each enum's own <c>ToApiValue()</c> extension.</summary>
+    public static string? JoinCommaSeparated<T>(IReadOnlyCollection<T>? values, Func<T, string> toApiValue) =>
+        values is null || values.Count == 0 ? null : string.Join(',', values.Select(toApiValue));
 }
