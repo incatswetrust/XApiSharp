@@ -17,8 +17,11 @@
 
     <!-- Full coverage achieved (190/190 operations implemented + contract-tested, spec 21.2's
          "full coverage, stabilization" trigger) - live validation and NuGet ownership are still
-         pending, so this is a beta, not yet a release candidate. -->
-    <Version>1.0.0-beta.1</Version>
+         pending, so this is a beta, not yet a release candidate.
+         beta.2: new compatible feature since beta.1 (persistent rate-limit state, RATE-03/04/05 -
+         issue #15) plus the E10 final handoff report - no breaking change, so the beta line
+         increments rather than resetting. -->
+    <Version>1.0.0-beta.2</Version>
 
     <Authors>Oleksii Chaikovskyi</Authors>
     <Company>Incatswetrust</Company>
