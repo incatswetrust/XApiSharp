@@ -4,8 +4,8 @@ namespace XApiSharp.Authentication;
 
 /// <summary>
 /// Passes an already-obtained app-only bearer token on every request. Does not acquire, cache, or
-/// refresh the token itself - see spec section 10.1: "передача уже полученного токена должна
-/// оставаться простым самостоятельным сценарием". App-only token acquisition and OAuth 2.0 /
+/// refresh the token itself - see spec section 10.1: "passing an already-obtained token must
+/// remain a simple, self-contained scenario". App-only token acquisition and OAuth 2.0 /
 /// OAuth 1.0a flows land in E3.
 /// </summary>
 public sealed class BearerTokenAuthenticationProvider : IXAuthenticationProvider

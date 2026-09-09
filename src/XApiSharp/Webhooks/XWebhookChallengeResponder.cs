@@ -7,7 +7,7 @@ namespace XApiSharp.Webhooks;
 /// Answers the CRC ("Challenge-Response Check") request X sends to a registered webhook URL, both
 /// at registration time and whenever <see cref="WebhooksClient.ValidateAsync"/> re-triggers one -
 /// a small, independent helper with no dependency on <see cref="WebhooksClient"/>/<c>HttpClient</c>
-/// (spec 17.1: "небольшие независимые helpers"), since this runs in the app's own inbound
+/// (spec 17.1: "small, independent helpers"), since this runs in the app's own inbound
 /// endpoint, not as an outgoing SDK call. Verified against current docs (docs.x.com/x-api/webhooks/quickstart,
 /// 2026-09-09), not carried over from the legacy v1.1 scheme unverified (spec 17.1): X sends a GET
 /// with a <c>crc_token</c> query parameter and expects back

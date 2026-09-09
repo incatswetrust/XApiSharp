@@ -11,7 +11,7 @@ namespace XApiSharp.UnitTests;
 
 /// <summary>Spec section 13.2 default retry policy + RATE-01/06. All timing goes through
 /// FakeTimeProvider, driven by a background "pump" that advances it - no real multi-second
-/// waits (spec: "все тайм-аут-зависимые тесты через TimeProvider").</summary>
+/// waits (spec: "every timeout-dependent test goes through TimeProvider").</summary>
 public class RetryTests
 {
     [Fact]

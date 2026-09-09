@@ -148,7 +148,7 @@ public sealed class ComplianceClient
     /// attach the X <c>Authorization</c> header (it may be a signed third-party storage URL, not
     /// an X API host). Never resubmits <see cref="CreateJobAsync"/> on your behalf - deciding
     /// whether creating a new job is safe after an unknown outcome is a caller decision (spec
-    /// 17.2: "не создавать job повторно при неизвестном исходе первого запроса").
+    /// 17.2: "don't resubmit a job when the outcome of the first request is unknown").
     /// </summary>
     public async Task<ComplianceJob> WaitForCompletionAsync(string jobId, XJobWaitOptions? options = null, CancellationToken cancellationToken = default)
     {

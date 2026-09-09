@@ -6,7 +6,7 @@ using XApiSharp.Authentication;
 namespace XApiSharp.UnitTests;
 
 /// <summary>
-/// Spec section 19.2: "OAuth 1.0a: независимые signature vectors" - these are X's own published
+/// Spec section 19.2: "OAuth 1.0a: independent signature vectors" - these are X's own published
 /// worked examples (not derived from this implementation), so a passing test is evidence the
 /// algorithm is actually correct, not just self-consistent.
 ///

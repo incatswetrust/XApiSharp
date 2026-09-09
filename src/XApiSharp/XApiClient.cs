@@ -38,7 +38,7 @@ public sealed class XApiClient
     /// <see cref="XClientOptions.AttemptTimeout"/> deterministically, without real sleeps.</param>
     /// <param name="retryJitterSource">Defaults to <see cref="Random.Shared"/>. Inject a seeded
     /// <see cref="Random"/> in tests for deterministic retry-delay assertions (spec: "jitter
-    /// через контролируемый random").</param>
+    /// via a controllable random source").</param>
     public XApiClient(HttpClient httpClient, IXAuthenticationProvider authenticationProvider, XClientOptions? options = null, TimeProvider? timeProvider = null, Random? retryJitterSource = null)
     {
         ArgumentNullException.ThrowIfNull(httpClient);

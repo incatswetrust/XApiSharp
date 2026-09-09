@@ -15,8 +15,8 @@ namespace XApiSharp.Authentication;
 ///
 /// Never mutates a shared <see cref="HttpClient.DefaultRequestHeaders"/> - the signature is
 /// request-specific (it covers the method, URL, and body), so it is set on the per-request
-/// <see cref="HttpRequestMessage.Headers"/> only (spec section 10.3: "Запрещено менять общий
-/// HttpClient.DefaultRequestHeaders.Authorization перед каждым пользовательским запросом").
+/// <see cref="HttpRequestMessage.Headers"/> only (spec section 10.3: "Mutating the shared
+/// HttpClient.DefaultRequestHeaders.Authorization before every per-user request is forbidden").
 /// </summary>
 public sealed class XOAuth1AuthenticationProvider : IXAuthenticationProvider
 {

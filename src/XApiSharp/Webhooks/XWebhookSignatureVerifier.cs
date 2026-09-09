@@ -8,7 +8,7 @@ namespace XApiSharp.Webhooks;
 /// event - a small, independent helper (spec 17.1), with no dependency on <see cref="WebhooksClient"/>.
 /// Verified against current docs (docs.x.com/x-api/webhooks/quickstart, 2026-09-09): the header
 /// value is <c>sha256=&lt;base64 HMAC-SHA256(consumer secret, raw request body bytes)&gt;</c>.
-/// Comparison is constant-time (spec 17.1: "сравнивать подписи за постоянное время") via
+/// Comparison is constant-time (spec 17.1: "compare signatures in constant time") via
 /// <see cref="CryptographicOperations.FixedTimeEquals"/>, so a timing side-channel can't leak how
 /// many leading bytes of a guessed signature matched.
 /// </summary>
@@ -19,8 +19,8 @@ public static class XWebhookSignatureVerifier
     /// <summary>
     /// Verifies <paramref name="signatureHeaderValue"/> (the raw <c>x-twitter-webhooks-signature</c>
     /// header value, <c>sha256=</c> prefix included) against <paramref name="rawBody"/> - the
-    /// exact, unmodified request body bytes (spec 17.1: "проверять подпись на исходных байтах
-    /// тела"). Re-parsing/re-serializing the body before calling this changes the bytes and will
+    /// exact, unmodified request body bytes (spec 17.1: "verify the signature on the body's
+    /// original bytes"). Re-parsing/re-serializing the body before calling this changes the bytes and will
     /// make a genuine signature fail to verify.
     /// </summary>
     public static bool Verify(ReadOnlySpan<byte> rawBody, string signatureHeaderValue, string consumerSecret)

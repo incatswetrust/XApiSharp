@@ -7,8 +7,8 @@ using XApiSharp.Users;
 
 namespace XApiSharp.UnitTests;
 
-/// <summary>Spec section 13.2 retry table: "Истёкший OAuth 2.0 access token | Не более одного
-/// refresh; последующая отправка только при однозначно допустимом сценарии" - exercised through
+/// <summary>Spec section 13.2 retry table: "Expired OAuth 2.0 access token | No more than one
+/// refresh; resending only in an unambiguously safe scenario" - exercised through
 /// XApiClient + XOAuth2UserAuthenticationProvider together, since the behavior lives in
 /// RequestExecutor's cooperation with IXRefreshableAuthenticationProvider.</summary>
 public class RequestExecutorAuthRefreshTests

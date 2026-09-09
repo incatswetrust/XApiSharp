@@ -34,14 +34,14 @@ public sealed class XClientOptions
     /// <summary>
     /// Retries after the initial attempt, for GET/HEAD requests only on a transient network
     /// error, an allowed 5xx, or a documented temporary 429 (spec section 13.2). Writes are
-    /// never retried automatically regardless of this setting. Default 2 - "не более двух
-    /// повторов после исходной попытки".
+    /// never retried automatically regardless of this setting. Default 2 - "no more than two
+    /// retries after the original attempt".
     /// </summary>
     public int MaxRetries { get; init; } = 2;
 
     /// <summary>
-    /// Cap on a single computed backoff delay (spec section 13.2: "максимальная отдельная
-    /// задержка 15 секунд"). A 429 response's own Retry-After/reset hint is honored even if it
+    /// Cap on a single computed backoff delay (spec section 13.2: "a single delay caps out at
+    /// 15 seconds"). A 429 response's own Retry-After/reset hint is honored even if it
     /// exceeds this cap - see <see cref="XClientOptions"/> remarks on <see cref="OperationTimeout"/>
     /// for why that can still fail: the overall deadline is the real ceiling.
     /// </summary>

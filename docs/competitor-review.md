@@ -19,8 +19,8 @@ NuGet.org APIs; re-verify before relying on this for a go/no-go decision much la
   repository's `spec/openapi-snapshot.json`.
 - Separately, X also publishes the `chat-xdk` repo for X Chat end-to-end encryption (including
   .NET bindings for the crypto layer) — https://github.com/xdevplatform/chat-xdk. Out of scope for
-  this project's 1.0 (see ТЗ section 3.2); a possible future integration point, not something to
-  duplicate.
+  this project's 1.0 (see the spec section 3.2); a possible future integration point, not something
+  to duplicate.
 
 ## Existing community .NET libraries
 
@@ -48,7 +48,7 @@ Based on the above (not a claim of superiority on unverified points — only wha
    learning from.)
 3. **Maintenance risk in the two most-downloaded alternatives**: Tweetinvi is stale; LinqToTwitter
    is active but is a single-maintainer project with a different API paradigm (LINQ provider) than
-   the typed-client-with-DI-support target shape in this ТЗ (section 8).
+   the typed-client-with-DI-support target shape in this spec (section 8).
 4. **No official first-party .NET SDK exists**, unlike Python/TypeScript — this project fills that
    specific gap rather than competing with an official offering.
 

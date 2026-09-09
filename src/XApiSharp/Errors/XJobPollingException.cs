@@ -5,7 +5,7 @@ namespace XApiSharp.Errors;
 /// without the job reaching <c>complete</c> - either the job itself reported <c>failed</c>, or the
 /// wait deadline was reached first. <see cref="LastKnownStatus"/> preserves whatever status was
 /// last observed so the caller isn't left guessing; the SDK never resubmits the original job on
-/// your behalf (spec 17.2: "не создавать job повторно при неизвестном исходе первого запроса") -
+/// your behalf (spec 17.2: "don't resubmit a job when the outcome of the first request is unknown") -
 /// deciding whether creating a new one is safe is a caller decision, not something this exception
 /// or the polling loop do automatically.
 /// </summary>

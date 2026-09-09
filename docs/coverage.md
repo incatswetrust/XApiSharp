@@ -8,7 +8,7 @@ See `docs/product-scope.md` and `spec/spec-manifest.json` for provenance
 - Denominator `N` (in-scope operations at this snapshot): **190**
 - Source of truth: `spec/endpoint-manifest.json`
 
-## Metrics (per ТЗ section 5.3)
+## Metrics (per spec section 5.3)
 
 | Metric | Numerator / Denominator | % |
 | --- | --- | --- |
