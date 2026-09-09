@@ -19,6 +19,7 @@ using XApiSharp.Transport;
 using XApiSharp.Trends;
 using XApiSharp.Usage;
 using XApiSharp.Users;
+using XApiSharp.Webhooks;
 
 namespace XApiSharp;
 
@@ -66,6 +67,7 @@ public sealed class XApiClient
         Broadcasts = new BroadcastsClient(executor);
         Media = new MediaClient(executor, resolvedTimeProvider);
         Streaming = new StreamingClient(executor, resolvedTimeProvider);
+        Webhooks = new WebhooksClient(executor);
     }
 
     public UsersClient Users { get; }
@@ -105,4 +107,6 @@ public sealed class XApiClient
     public MediaClient Media { get; }
 
     public StreamingClient Streaming { get; }
+
+    public WebhooksClient Webhooks { get; }
 }

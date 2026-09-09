@@ -9282,9 +9282,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.GetStreamLinksAsync",
+      "requestType": "XApiSharp.Webhooks.GetWebhooksStreamLinksRequest",
+      "responseType": "XApiSharp.Webhooks.GetWebhooksStreamLinksResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -9293,8 +9293,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.GetStreamLinksAsync_hits_the_stream_links_path"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -9325,9 +9327,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.DeleteStreamLinkAsync",
+      "requestType": "XApiSharp.Webhooks.DeleteWebhooksStreamLinkRequest",
+      "responseType": "XApiSharp.Webhooks.DeleteWebhooksStreamLinkResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -9336,8 +9338,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.DeleteStreamLinkAsync_substitutes_the_webhook_id_path_segment"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -9368,9 +9372,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.CreateStreamLinkAsync",
+      "requestType": "XApiSharp.Webhooks.CreateWebhooksStreamLinkRequest",
+      "responseType": "XApiSharp.Webhooks.CreateWebhooksStreamLinkResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -9379,8 +9383,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.CreateStreamLinkAsync_substitutes_the_webhook_id_path_segment"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -9419,9 +9425,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.GetAllAsync",
+      "requestType": "XApiSharp.Webhooks.GetWebhooksRequest",
+      "responseType": "XApiSharp.Webhooks.GetWebhooksResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -9430,8 +9436,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.GetAllAsync_sends_the_webhook_config_fields_query_parameter"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -9470,9 +9478,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.CreateAsync",
+      "requestType": "XApiSharp.Webhooks.CreateWebhooksRequest",
+      "responseType": "XApiSharp.Webhooks.CreateWebhooksResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -9481,8 +9489,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.CreateAsync_sends_the_url_body"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -9513,9 +9523,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.CreateReplayJobAsync",
+      "requestType": "XApiSharp.Webhooks.CreateWebhookReplayJobRequest",
+      "responseType": "XApiSharp.Webhooks.CreateWebhookReplayJobResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -9524,8 +9534,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.CreateReplayJobAsync_formats_dates_as_12_digit_utc_minutes"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -9564,9 +9576,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.DeleteAsync",
+      "requestType": "XApiSharp.Webhooks.DeleteWebhooksRequest",
+      "responseType": "XApiSharp.Webhooks.DeleteWebhooksResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -9575,8 +9587,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.DeleteAsync_substitutes_the_webhook_id_path_segment"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -9615,9 +9629,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.ValidateAsync",
+      "requestType": "XApiSharp.Webhooks.ValidateWebhooksRequest",
+      "responseType": "XApiSharp.Webhooks.ValidateWebhooksResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -9626,8 +9640,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.ValidateAsync_sends_a_put_and_substitutes_the_webhook_id_path_segment"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
