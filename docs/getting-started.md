@@ -14,7 +14,7 @@
 ## 2. Reference the package
 
 ```bash
-dotnet add package XApiSharp.Net --version 1.0.0-beta.1
+dotnet add package XApiSharp.Net --version 1.0.0-beta.2
 ```
 
 It's a prerelease version (see the repository root README Status - `1.0.0` stable follows once
