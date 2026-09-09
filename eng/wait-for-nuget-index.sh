@@ -5,7 +5,12 @@
 set -euo pipefail
 
 VERSION="${1:?Usage: eng/wait-for-nuget-index.sh <version>}"
-TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-900}"
+# NuGet's own docs: "usually under 15 minutes ... if it hasn't published within an hour, contact
+# support." The 1.0.0-beta.1 publish run measured this directly: indexing took longer than the
+# original 900s (15 min) default, causing a false-failure after the push itself had already
+# succeeded (see release notes for that version). 2700s (45 min) gives real headroom under NuGet's
+# own "up to an hour is not abnormal" ceiling while staying bounded, not indefinite (spec 22.2).
+TIMEOUT_SECONDS="${TIMEOUT_SECONDS:-2700}"
 POLL_INTERVAL_SECONDS="${POLL_INTERVAL_SECONDS:-15}"
 
 LOWER_VERSION=$(echo "$VERSION" | tr '[:upper:]' '[:lower:]')

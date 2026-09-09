@@ -24,10 +24,11 @@ dotnet add package XApiSharp.Net.Extensions.DependencyInjection --version 1.0.0-
 ```
 
 Work proceeds in stages E0–E10 (inventory → vertical slice → full endpoint coverage → hardening →
-release → maintenance); E0–E9 are complete (see `docs/releasing.md` for the release pipeline and
-process). E10 (handoff/maintenance docs) and eventually a `1.0.0` stable bump - once live
-validation is unblocked - are what's left. See `docs/` for the design decisions (ADRs) and
-`docs/coverage.md` for the operation coverage matrix.
+release → maintenance); E0–E10 are complete - see `docs/final-report.md` for the full handoff
+(provenance, coverage, known limitations, backlog) and `docs/releasing.md` for the release
+pipeline and process. A `1.0.0` stable bump, once live validation is unblocked, is what's left.
+See `docs/` for the design decisions (ADRs) and `docs/coverage.md` for the operation coverage
+matrix.
 
 ## Repository layout
 

@@ -27,6 +27,8 @@ internal static class BranchCoverageChecker
         "Streaming/XEventStream.cs",
         "Streaming/XStreamLineReader.cs",
         "Diagnostics/XDiagnostics.cs",
+        "Transport/XRateLimitContextStore.cs",
+        "Transport/XRateLimitStateRegistry.cs",
         "Authentication/BearerTokenAuthenticationProvider.cs",
         "Authentication/XAppOnlyAuthenticationProvider.cs",
         "Authentication/XOAuth1AuthenticationProvider.cs",
