@@ -7,6 +7,9 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <!-- Spec 21.2: shape validation now; once a stable package exists, set
+         PackageValidationBaselineVersion to it (also enables the compat, not just shape, checks). -->
+    <EnablePackageValidation>true</EnablePackageValidation>
   </PropertyGroup>
 
   <ItemGroup>

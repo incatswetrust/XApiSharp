@@ -24,6 +24,11 @@ currently available for this account/project. Every operation's `liveValidation.
 spec section 5.3/E6 - never marked "verified in production" without an actual live check having
 run.
 
+The implementation/contract-coverage row is now a CI gate, not just a snapshot: as of E8,
+`dotnet run --project tools/XApiSharp.CodeGen -- coverage-check` fails the build if any in-scope
+operation regresses below full implementation/contract-test coverage (runs in
+`.github/workflows/ci.yml` and `eng/release.sh`).
+
 ## By family
 
 | Family | Operations | Implemented | Contract-tested | Live-validated |
@@ -126,10 +131,12 @@ E7's diagnostics-focused tests, which incidentally raised `RequestExecutor`/`XEv
 observe events on - no branches were excluded to inflate this number (spec 19.5: "no excluding
 hard branches").
 
-To reproduce: `dotnet test tests/XApiSharp.UnitTests/XApiSharp.UnitTests.csproj --collect:"XPlat Code Coverage" --results-directory <dir>`
-(same for `XApiSharp.ContractTests`), then merge the two `coverage.cobertura.xml` outputs by source
-line - a single run undercounts, since the two test projects exercise different, only partially
-overlapping code paths.
+Enforced automatically as of E8: `.github/workflows/ci.yml` and `eng/release.sh` both run
+`dotnet run --project tools/XApiSharp.CodeGen -- branch-coverage-check --unit <dir> --contract <dir>`
+after collecting coverage from both projects, failing the build below 80%. That command (not a
+manual per-run merge) is the reproduction step - it merges the two `coverage.cobertura.xml`
+outputs itself, since a single run undercounts (the two test projects exercise different, only
+partially overlapping code paths).
 
 ## Soak test results (spec section 19.5)
 

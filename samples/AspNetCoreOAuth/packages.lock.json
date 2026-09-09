@@ -8,7 +8,7 @@
       "XApiSharp.Net.Extensions.DependencyInjection": {
         "type": "Project",
         "dependencies": {
-          "XApiSharp.Net": "[0.1.0-alpha.1, )"
+          "XApiSharp.Net": "[1.0.0-beta.1, )"
         }
       }
     }
