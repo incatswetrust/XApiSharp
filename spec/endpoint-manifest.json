@@ -4602,9 +4602,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Media.GetByKeysAsync",
+      "requestType": "XApiSharp.Media.GetMediaByKeysRequest",
+      "responseType": "XApiSharp.Media.GetMediaByKeysResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -4613,8 +4613,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "MediaContractTests.GetByKeys_sends_comma_joined_keys_and_requires_at_least_one"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -4651,9 +4653,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Media.GetAnalyticsAsync",
+      "requestType": "XApiSharp.Media.GetMediaAnalyticsRequest",
+      "responseType": "XApiSharp.Media.GetMediaAnalyticsResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -4662,8 +4664,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "MediaContractTests.GetAnalytics_sends_time_range_and_granularity"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -4700,9 +4704,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Media.CreateMetadataAsync",
+      "requestType": "XApiSharp.Media.CreateMediaMetadataRequest",
+      "responseType": "XApiSharp.Media.CreateMediaMetadataResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -4711,8 +4715,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "MediaContractTests.CreateMetadata_sends_id_and_raw_metadata_element"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -4749,9 +4755,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Media.DeleteSubtitlesAsync",
+      "requestType": "XApiSharp.Media.DeleteMediaSubtitlesRequest",
+      "responseType": "XApiSharp.Media.DeleteMediaSubtitlesResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -4760,8 +4766,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "MediaContractTests.DeleteSubtitles_sends_id_category_and_language"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -4798,9 +4806,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Media.CreateSubtitlesAsync",
+      "requestType": "XApiSharp.Media.CreateMediaSubtitlesRequest",
+      "responseType": "XApiSharp.Media.CreateMediaSubtitlesResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -4809,8 +4817,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "MediaContractTests.CreateSubtitles_sends_pascal_case_media_category_distinct_from_upload_category"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -4847,9 +4857,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Media.GetUploadStatusAsync",
+      "requestType": "XApiSharp.Media.GetMediaUploadStatusRequest",
+      "responseType": "XApiSharp.Media.GetMediaUploadStatusResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -4858,8 +4868,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "MediaContractTests.GetUploadStatus_sends_media_id_and_status_command"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -4945,9 +4957,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Media.InitializeUploadAsync",
+      "requestType": "XApiSharp.Media.InitializeMediaUploadRequest",
+      "responseType": "XApiSharp.Media.InitializeMediaUploadResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -4956,8 +4968,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "MediaContractTests.InitializeUpload_sends_category_type_and_total_bytes"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -5043,9 +5057,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Media.FinalizeUploadAsync",
+      "requestType": "XApiSharp.Media.FinalizeMediaUploadRequest",
+      "responseType": "XApiSharp.Media.FinalizeMediaUploadResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -5054,8 +5068,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "MediaContractTests.FinalizeUpload_substitutes_the_id_path_segment_and_deserializes_processing_info"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -5096,9 +5112,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Media.GetByKeyAsync",
+      "requestType": "XApiSharp.Media.GetMediaRequest",
+      "responseType": "XApiSharp.Media.GetMediaResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -5107,8 +5123,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "MediaContractTests.GetByKey_substitutes_the_media_key_path_segment"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,

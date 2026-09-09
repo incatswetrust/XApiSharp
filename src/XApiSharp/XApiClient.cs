@@ -10,6 +10,7 @@ using XApiSharp.Connections;
 using XApiSharp.DirectMessages;
 using XApiSharp.General;
 using XApiSharp.Lists;
+using XApiSharp.Media;
 using XApiSharp.News;
 using XApiSharp.Posts;
 using XApiSharp.Spaces;
@@ -62,6 +63,7 @@ public sealed class XApiClient
         Connections = new ConnectionsClient(executor);
         Bots = new BotsClient(executor);
         Broadcasts = new BroadcastsClient(executor);
+        Media = new MediaClient(executor);
     }
 
     public UsersClient Users { get; }
@@ -97,4 +99,6 @@ public sealed class XApiClient
     public BotsClient Bots { get; }
 
     public BroadcastsClient Broadcasts { get; }
+
+    public MediaClient Media { get; }
 }
