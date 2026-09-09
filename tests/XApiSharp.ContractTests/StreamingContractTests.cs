@@ -7,12 +7,10 @@ using XApiSharp.Streaming;
 namespace XApiSharp.ContractTests;
 
 /// <summary>
-/// Contract checks for the Stream family (18 operations, spec section 16), per spec 19.3. Covers
-/// a representative operation from each distinct request/response shape the registry declares
-/// (filtered, volume/partitioned, compliance/partitioned-compliance, likes, activity, rules) plus
-/// the streaming-specific legacy field vocabulary (PAGE-02) - not all 15 near-identical GET
-/// streams individually, the same "generic scenario tested once" reduction the rest of the suite
-/// uses for HTTP-status/auth-error mapping.
+/// Contract checks for the Stream family (18 operations, spec section 16), per spec 19.3 - one
+/// test per <c>operationId</c> (spec section 19.2/E6: 100% contract coverage across the full
+/// registry), even for the near-identical volume/compliance streams that share
+/// <c>StreamPostResponse</c>/<c>StreamComplianceEvent</c> and differ only in path/partition range.
 /// </summary>
 public class StreamingContractTests
 {
@@ -76,6 +74,86 @@ public class StreamingContractTests
     }
 
     [Fact]
+    public async Task StreamPostsFirehoseAsync_sends_the_required_partition()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal("/2/tweets/firehose/stream", request.RequestUri!.AbsolutePath);
+            Assert.Contains("partition=10", request.RequestUri.Query, StringComparison.Ordinal);
+            return Task.FromResult(NdjsonResponse("""{"data":{"id":"1"}}""" + "\n"));
+        });
+        var client = CreateClient(handler);
+
+        var events = await CollectAsync(client.Streaming.StreamPostsFirehoseAsync(new PostVolumeStreamRequest { Partition = 10 }), take: 1);
+
+        Assert.Equal("1", events[0].Data!.Id);
+    }
+
+    [Fact]
+    public async Task StreamPostsFirehoseEnAsync_sends_the_required_partition()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal("/2/tweets/firehose/stream/lang/en", request.RequestUri!.AbsolutePath);
+            Assert.Contains("partition=4", request.RequestUri.Query, StringComparison.Ordinal);
+            return Task.FromResult(NdjsonResponse("""{"data":{"id":"1"}}""" + "\n"));
+        });
+        var client = CreateClient(handler);
+
+        var events = await CollectAsync(client.Streaming.StreamPostsFirehoseEnAsync(new PostVolumeStreamRequest { Partition = 4 }), take: 1);
+
+        Assert.Equal("1", events[0].Data!.Id);
+    }
+
+    [Fact]
+    public async Task StreamPostsFirehoseJaAsync_sends_the_required_partition()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal("/2/tweets/firehose/stream/lang/ja", request.RequestUri!.AbsolutePath);
+            Assert.Contains("partition=1", request.RequestUri.Query, StringComparison.Ordinal);
+            return Task.FromResult(NdjsonResponse("""{"data":{"id":"1"}}""" + "\n"));
+        });
+        var client = CreateClient(handler);
+
+        var events = await CollectAsync(client.Streaming.StreamPostsFirehoseJaAsync(new PostVolumeStreamRequest { Partition = 1 }), take: 1);
+
+        Assert.Equal("1", events[0].Data!.Id);
+    }
+
+    [Fact]
+    public async Task StreamPostsFirehoseKoAsync_sends_the_required_partition()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal("/2/tweets/firehose/stream/lang/ko", request.RequestUri!.AbsolutePath);
+            Assert.Contains("partition=2", request.RequestUri.Query, StringComparison.Ordinal);
+            return Task.FromResult(NdjsonResponse("""{"data":{"id":"1"}}""" + "\n"));
+        });
+        var client = CreateClient(handler);
+
+        var events = await CollectAsync(client.Streaming.StreamPostsFirehoseKoAsync(new PostVolumeStreamRequest { Partition = 2 }), take: 1);
+
+        Assert.Equal("1", events[0].Data!.Id);
+    }
+
+    [Fact]
+    public async Task StreamPostsFirehosePtAsync_sends_the_required_partition()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal("/2/tweets/firehose/stream/lang/pt", request.RequestUri!.AbsolutePath);
+            Assert.Contains("partition=2", request.RequestUri.Query, StringComparison.Ordinal);
+            return Task.FromResult(NdjsonResponse("""{"data":{"id":"1"}}""" + "\n"));
+        });
+        var client = CreateClient(handler);
+
+        var events = await CollectAsync(client.Streaming.StreamPostsFirehosePtAsync(new PostVolumeStreamRequest { Partition = 2 }), take: 1);
+
+        Assert.Equal("1", events[0].Data!.Id);
+    }
+
+    [Fact]
     public async Task StreamPostsComplianceAsync_requires_partition_and_sends_it_when_provided()
     {
         using var handler = new FakeHttpMessageHandler((request, _) =>
@@ -109,6 +187,54 @@ public class StreamingContractTests
             {
             }
         });
+    }
+
+    [Fact]
+    public async Task StreamPostLabelsAsync_hits_the_label_stream_path()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal("/2/tweets/label/stream", request.RequestUri!.AbsolutePath);
+            Assert.DoesNotContain("partition", request.RequestUri.Query, StringComparison.Ordinal);
+            return Task.FromResult(NdjsonResponse("""{"data":{"tweet_id":"1"}}""" + "\n"));
+        });
+        var client = CreateClient(handler);
+
+        var events = await CollectAsync(client.Streaming.StreamPostLabelsAsync(new ComplianceStreamRequest()), take: 1);
+
+        Assert.Equal("1", events[0].Data!.Value.GetProperty("tweet_id").GetString());
+    }
+
+    [Fact]
+    public async Task StreamLikesComplianceAsync_hits_the_likes_compliance_path()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal("/2/likes/compliance/stream", request.RequestUri!.AbsolutePath);
+            Assert.DoesNotContain("partition", request.RequestUri.Query, StringComparison.Ordinal);
+            return Task.FromResult(NdjsonResponse("""{"data":{"like_id":"1"}}""" + "\n"));
+        });
+        var client = CreateClient(handler);
+
+        var events = await CollectAsync(client.Streaming.StreamLikesComplianceAsync(new ComplianceStreamRequest()), take: 1);
+
+        Assert.Equal("1", events[0].Data!.Value.GetProperty("like_id").GetString());
+    }
+
+    [Fact]
+    public async Task StreamLikesSample10Async_sends_the_required_partition()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal("/2/likes/sample10/stream", request.RequestUri!.AbsolutePath);
+            Assert.Contains("partition=1", request.RequestUri.Query, StringComparison.Ordinal);
+            return Task.FromResult(NdjsonResponse("""{"data":{"id":"1","liked_tweet_id":"2"}}""" + "\n"));
+        });
+        var client = CreateClient(handler);
+
+        var events = await CollectAsync(client.Streaming.StreamLikesSample10Async(new LikeStreamRequest { Partition = 1 }), take: 1);
+
+        Assert.Equal("2", events[0].Data!.LikedTweetId);
     }
 
     [Fact]
