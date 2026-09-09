@@ -1,8 +1,10 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using XApiSharp.Authentication;
+using XApiSharp.Diagnostics;
 using XApiSharp.Errors;
 
 namespace XApiSharp.Transport;
@@ -166,6 +168,7 @@ internal sealed class RequestExecutor
                 {
                     hasRefreshedForThisCall = true;
                     response.Dispose();
+                    XDiagnostics.AddEvent("xapisharp.token_refresh");
                     await refreshable.ForceRefreshAsync(cancellationToken).ConfigureAwait(false);
                     continue;
                 }
@@ -185,7 +188,56 @@ internal sealed class RequestExecutor
     /// every <c>Send*Async</c> overload goes through - only what happens with a *successful*
     /// response varies, via <paramref name="readBody"/>.
     /// </summary>
+    /// <summary>
+    /// Diagnostics wrapper (spec 18.2): one Activity span and one set of request-count/duration/
+    /// error-count metric records per logical operation (every retry inside <see cref="ExecuteAttemptLoopAsync{TBody}"/>
+    /// stays inside this same span/timing window). Tags are limited to the HTTP method and a
+    /// best-effort route template (<see cref="XDiagnostics.ToRouteTemplate"/>) - never the actual
+    /// path/query, a user ID, or a token.
+    /// </summary>
     private async Task<XResponse<TBody>> ExecuteAsync<TBody>(
+        HttpMethod method,
+        string relativePath,
+        object? jsonBody,
+        byte[]? binaryBody,
+        Func<HttpContent>? contentFactory,
+        IReadOnlyList<(string Name, string? Value)>? queryParameters,
+        Func<HttpResponseMessage, IReadOnlyDictionary<string, IReadOnlyList<string>>, XRateLimitInfo?, CancellationToken, CancellationToken, Task<XResponse<TBody>>> readBody,
+        CancellationToken cancellationToken)
+    {
+        var routeTemplate = XDiagnostics.ToRouteTemplate(relativePath);
+        var tags = new KeyValuePair<string, object?>[]
+        {
+            new("http.request.method", method.Method),
+            new("url.template", routeTemplate),
+        };
+
+        using var activity = XDiagnostics.ActivitySource.StartActivity($"{method.Method} {routeTemplate}", ActivityKind.Client);
+        activity?.SetTag("http.request.method", method.Method);
+        activity?.SetTag("url.template", routeTemplate);
+
+        var start = Stopwatch.GetTimestamp();
+        try
+        {
+            var result = await ExecuteAttemptLoopAsync(method, relativePath, jsonBody, binaryBody, contentFactory, queryParameters, readBody, cancellationToken).ConfigureAwait(false);
+            activity?.SetStatus(ActivityStatusCode.Ok);
+            XDiagnostics.RequestCount.Add(1, tags);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            activity?.SetStatus(ActivityStatusCode.Error, ex.Message);
+            XDiagnostics.RequestCount.Add(1, tags);
+            XDiagnostics.ErrorCount.Add(1, tags);
+            throw;
+        }
+        finally
+        {
+            XDiagnostics.RequestDuration.Record(Stopwatch.GetElapsedTime(start).TotalMilliseconds, tags);
+        }
+    }
+
+    private async Task<XResponse<TBody>> ExecuteAttemptLoopAsync<TBody>(
         HttpMethod method,
         string relativePath,
         object? jsonBody,
@@ -250,6 +302,8 @@ internal sealed class RequestExecutor
                     // Bounded exponential backoff with jitter". Writes are never retried here.
                     if (isRetryableMethod && !isLastAttempt)
                     {
+                        XDiagnostics.RetryCount.Add(1);
+                        XDiagnostics.AddEvent("xapisharp.retry", new("attempt", attempt), new("reason", "transport_error"));
                         await DelayAsync(ComputeBackoffDelay(attempt), operationCts.Token, cancellationToken).ConfigureAwait(false);
                         continue;
                     }
@@ -279,16 +333,23 @@ internal sealed class RequestExecutor
                         && _authenticationProvider is IXRefreshableAuthenticationProvider refreshable)
                     {
                         hasRefreshedForThisCall = true;
+                        XDiagnostics.AddEvent("xapisharp.token_refresh");
                         await refreshable.ForceRefreshAsync(operationCts.Token).ConfigureAwait(false);
                         continue;
                     }
 
                     if (isRetryableMethod && !isLastAttempt && IsRetryableStatus(response.StatusCode))
                     {
-                        var delay = response.StatusCode == HttpStatusCode.TooManyRequests
+                        var isRateLimited = response.StatusCode == HttpStatusCode.TooManyRequests;
+                        var delay = isRateLimited
                             ? ComputeRateLimitDelay(response, rateLimit) ?? ComputeBackoffDelay(attempt)
                             : ComputeBackoffDelay(attempt);
 
+                        XDiagnostics.RetryCount.Add(1);
+                        XDiagnostics.AddEvent(
+                            isRateLimited ? "xapisharp.rate_limit_wait" : "xapisharp.retry",
+                            new("attempt", attempt),
+                            new("delay_ms", delay.TotalMilliseconds));
                         await DelayAsync(delay, operationCts.Token, cancellationToken).ConfigureAwait(false);
                         continue;
                     }
@@ -333,6 +394,7 @@ internal sealed class RequestExecutor
         }
         catch (JsonException ex)
         {
+            XDiagnostics.AddEvent("xapisharp.deserialization_error");
             throw new XProtocolException(
                 "Response body was not valid JSON for the expected contract.",
                 response.StatusCode,

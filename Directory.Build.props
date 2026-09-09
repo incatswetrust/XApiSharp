@@ -20,10 +20,19 @@
 
     <Authors>TODO-set-real-author</Authors>
     <Company>TODO-set-real-owner</Company>
-    <PackageProjectUrl>TODO-set-real-repository-url</PackageProjectUrl>
-    <RepositoryUrl>TODO-set-real-repository-url</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/incatswetrust/XApiSharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/incatswetrust/XApiSharp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+    <!-- Spec section 21.1: "add SourceLink and a portable PDB, ship a .snupkg" -
+         PublishRepositoryUrl/EmbedUntrackedSources are what make the Microsoft.SourceLink.GitHub
+         package reference (added per-package below) actually take effect; portable PDB is already
+         the SDK-style default, stated explicitly here so it isn't silently relied upon. -->
+    <DebugType>portable</DebugType>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
   </PropertyGroup>
 
 </Project>

@@ -268,7 +268,8 @@ public sealed class StreamingClient
             ct => _executor.OpenStreamAsync(HttpMethod.Get, path, query, ct),
             options,
             _timeProvider,
-            cancellationToken);
+            cancellationToken,
+            routeTag: path);
 
     private static List<(string Name, string? Value)> BuildPostVolumeQuery(PostVolumeStreamRequest request)
     {

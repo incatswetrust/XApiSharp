@@ -2,6 +2,12 @@
   <Folder Name="/samples/">
     <Project Path="samples/ConsoleRead/ConsoleRead.csproj" />
     <Project Path="samples/WebhookReceiver/WebhookReceiver.csproj" />
+    <Project Path="samples/Pagination/Pagination.csproj" />
+    <Project Path="samples/MediaUpload/MediaUpload.csproj" />
+    <Project Path="samples/PostWrite/PostWrite.csproj" />
+    <Project Path="samples/FilteredStream/FilteredStream.csproj" />
+    <Project Path="samples/AspNetCoreOAuth/AspNetCoreOAuth.csproj" />
+    <Project Path="samples/AspNetCoreAppOnly/AspNetCoreAppOnly.csproj" />
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/XApiSharp.Extensions.DependencyInjection/XApiSharp.Extensions.DependencyInjection.csproj" />

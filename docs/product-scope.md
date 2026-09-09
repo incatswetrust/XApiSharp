@@ -1,6 +1,10 @@
 # Product Scope
 
-Status: **initial inventory complete (stage E0)**, pending manual per-operation review.
+Status: **E0 inventory complete; E0–E7 done, all 190 operations implemented and contract-tested**
+(see `docs/coverage.md`). The snapshot/family-breakdown sections below are the frozen E0-time
+record of what was discovered - kept as-is for that reason, not updated for later per-operation
+reclassifications (e.g. 2 `public_keys` operations moved from Users to Chat during E5; see
+`docs/coverage.md`'s current by-family table for the up-to-date counts).
 
 ## Snapshot
 
@@ -84,7 +88,9 @@ a scope signal; see the override file for the full list.
 
 All 190 discovered operations are marked `inScope: true` in `spec/endpoint-manifest.json` with
 the mechanical reason "found in the official v2 snapshot, no match to a section 3.3 exclusion."
-**This is a first pass, not a final per-operation review.** None of the hard exclusions from
+**This was a first pass at E0 time; the full per-operation review has since happened during
+E2–E6 implementation** (all 190 now have a `methodName`/`requestType`/`responseType` and
+contract test recorded in the manifest). None of the hard exclusions from
 section 3.3 (Ads API, legacy v1.1/GNIP, internal GraphQL/scraping, X Chat E2E crypto
 implementation) were encountered as distinct operations in this snapshot, which is expected since
 the source is specifically the public v2 HTTP surface.
@@ -100,12 +106,13 @@ Done (see `spec/overrides/e0-docs-cross-check.md` for full detail):
    a matched doc page); 27 operations have no discoverable public doc page — see the Broadcasts/
    Bots/Account caveat above.
 
-Still outstanding:
+Resolved since E0 (kept here for context, not because they're still open):
 
-1. Decide with the project owner whether to proceed with Broadcasts/Bots at full priority in E4/E5
-   given the lack of public documentation, or deprioritize them relative to documented families.
-2. Review the heuristic `flags` (pagination/streaming/upload/multipart) per operation during
-   E4/E5 implementation — they are not authoritative yet.
+1. Broadcasts/Bots were implemented at full priority in E4 alongside the documented families -
+   both fully typed and contract-tested despite the lack of public docs at E0 time.
+2. The heuristic `flags` (pagination/streaming/upload/multipart) were reviewed and corrected
+   per-operation during E4/E5 implementation; the manifest's current `flags` values are
+   authoritative, not the E0 heuristic guess.
 
 ## Naming decision (package/repo)
 
@@ -115,9 +122,12 @@ package ID is **`XApiSharp.Net`** (main package) and **`XApiSharp.Net.Extensions
 (DI package); both confirmed available on NuGet.org as of this inventory. The C#
 namespace/repository name remains `XApiSharp` — only the NuGet `PackageId` differs.
 
-## Still open from E0 (not started)
+## Still open from E0
 
-- Competitor/prior-art review (`docs/competitor-review.md`) — official XDK/.NET solutions status.
-- ADR 0001–0003 — runtime/package layout, code generation approach, public API/error model.
-- Confirmed actual X test application, auth setup, and real-request budget for later live
-  validation (section 19.4).
+- Competitor/prior-art review (`docs/competitor-review.md`) — done.
+- ADR 0001–0003 — done (`docs/adr/`).
+- Confirmed actual X test application, auth setup, and real-request budget for live validation
+  (spec section 19.4) — **still open**, the one genuine E0 blocker remaining. Every operation is
+  recorded as `blocked-by-budget` in `spec/endpoint-manifest.json` until this is resolved; see
+  `tests/XApiSharp.IntegrationTests/README.md` for the ready-to-run checklist and fixture/cleanup
+  infrastructure waiting on it.

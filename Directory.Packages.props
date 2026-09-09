@@ -19,6 +19,20 @@
     <!-- Test-only: branch coverage collection for the E6 resource-check gate (spec section 19.5,
          "≥80% branch coverage on hand-written core"). Never referenced by src/. -->
     <PackageVersion Include="coverlet.collector" Version="6.0.0" />
+    <!-- Build-time only (spec section 21.1: "add SourceLink and a portable PDB"). -->
+    <PackageVersion Include="Microsoft.SourceLink.GitHub" Version="8.0.0" />
+    <!-- Explicit override of SourceLink's own transitive dependency: 8.0.0/10.0.102-10.0.110 has
+         a moderate-severity info-disclosure advisory (GHSA-23fw-v26w-5fgq, CVE-2026-62900) in
+         build-time git-metadata handling - fixed in 10.0.111+. Pinned here rather than suppressed,
+         even though this dependency is PrivateAssets="all" (build-time only, never ships to
+         consumers) - the fix is trivial and available, so there's no reason to carry the flagged
+         version instead. -->
+    <PackageVersion Include="Microsoft.Build.Tasks.Git" Version="10.0.111" />
+    <!-- XApiSharp.Extensions.DependencyInjection: IHttpClientFactory registration/options (spec
+         section 18.1). Pinned to the latest stable 10.x release, matching TargetFramework. -->
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.Options" Version="10.0.12" />
+    <PackageVersion Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.12" />
   </ItemGroup>
 
 </Project>

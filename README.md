@@ -2,19 +2,24 @@
 
 An independent, community-maintained C#/.NET SDK for the public [X API v2](https://docs.x.com/x-api).
 
-> **This project is not affiliated with, endorsed by, or sponsored by X Corp.** "XApiSharp" is a
-> working name; the final package/repository name depends on availability checks (stage E0).
+> **This project is not affiliated with, endorsed by, or sponsored by X Corp.** The C#
+> namespace/repository name is `XApiSharp`; the NuGet package IDs are `XApiSharp.Net` and
+> `XApiSharp.Net.Extensions.DependencyInjection` (confirmed available on NuGet.org, stage E0).
 
 ## Status
 
-🚧 **Early scaffolding — no endpoints are implemented yet.** This repository currently contains
-the solution layout, build configuration, and CI skeleton only. It is not installable from
-NuGet.org, and the interface shown anywhere in the docs is a target, not something you can use
-today.
+🚧 **Pre-release — not yet published to NuGet.org.** All 190 in-scope operations from the OpenAPI
+snapshot have a typed implementation and contract-test coverage (100%/100% - see
+`docs/coverage.md`). **Live validation against the real X API is currently blocked**: the required
+scenarios (spec section 19.4) need a paid X API tier, and no live credentials are available for
+this project yet - every operation is honestly recorded as `blocked-by-budget` in
+`spec/endpoint-manifest.json`, not "verified in production."
 
 Work proceeds in stages E0–E10 (inventory → vertical slice → full endpoint coverage → hardening →
-release → maintenance). See `docs/` for the design decisions (ADRs) and the operation coverage
-matrix once they exist.
+release → maintenance); E0–E7 are complete (documentation, samples, DI package, diagnostics, and
+NuGet packaging metadata are all in place - `Authors`/`Company` remain placeholders pending a real
+maintainer identity, deliberately left unfilled rather than fabricated). See `docs/` for the
+design decisions (ADRs) and `docs/coverage.md` for the operation coverage matrix.
 
 ## Repository layout
 
