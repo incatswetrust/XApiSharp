@@ -3,6 +3,19 @@
 All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/), and versioning follows [SemVer](https://semver.org/).
 
+## [1.0.0-beta.2] - 2026-09-09
+
+### Added
+
+- Persistent, per-auth-context rate-limit state (RATE-03/04/05, issue #15): `RequestExecutor` now
+  consults previously-recorded rate-limit info before sending each request and waits for the reset
+  if a scope is already known to be exhausted, instead of sending a request guaranteed to fail.
+  State is scoped per `IXAuthenticationProvider` instance (so one user's exhausted limit never
+  affects another's) and per endpoint, with a monotonic sequence number - not response-arrival
+  order - deciding which of two concurrent responses is more recent.
+- `docs/final-report.md`: the full handoff report (provenance, coverage, known limitations,
+  backlog).
+
 ## [1.0.0-beta.1] - 2026-09-09
 
 Published to NuGet.org - pre-release, see `README.md` Status for the live-validation caveat
