@@ -3,10 +3,10 @@
 All notable changes to this project are documented here. Format follows
 [Keep a Changelog](https://keepachangelog.com/), and versioning follows [SemVer](https://semver.org/).
 
-## [Unreleased]
+## [1.0.0-beta.1] - 2026-09-09
 
-Not yet published to NuGet.org - pre-release, see `README.md` Status for the live-validation
-caveat (blocked on paid X API access).
+Published to NuGet.org - pre-release, see `README.md` Status for the live-validation caveat
+(blocked on paid X API access; `1.0.0` stable follows once that's resolved).
 
 ### Added
 

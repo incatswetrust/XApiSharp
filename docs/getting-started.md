@@ -13,16 +13,20 @@
 
 ## 2. Reference the package
 
-Not yet published to NuGet.org (see the repository root README Status). Until it is, reference the
-project directly from a solution that includes this repo, e.g. a `ProjectReference` to
+```bash
+dotnet add package XApiSharp.Net --version 1.0.0-beta.1
+```
+
+It's a prerelease version (see the repository root README Status - `1.0.0` stable follows once
+live validation against the real X API is unblocked), so most tooling needs the exact
+`--version`/an explicit prerelease flag rather than picking it up automatically. If you'd rather
+build from source, reference the project directly instead: a `ProjectReference` to
 `src/XApiSharp/XApiSharp.csproj`, or install from a local `dotnet pack` output:
 
 ```bash
 dotnet pack src/XApiSharp/XApiSharp.csproj --configuration Release --output ./local-packages
 dotnet add package XApiSharp.Net --source ./local-packages
 ```
-
-Once published, this becomes a normal `dotnet add package XApiSharp.Net`.
 
 ## 3. Make your first request
 
