@@ -148,6 +148,15 @@ internal sealed class RequestExecutor
             {
                 throw new XTransportException("Streaming connection failed at the transport level.", ex);
             }
+            catch (OperationCanceledException ex)
+            {
+                // No separate operation/attempt deadline here (this method deliberately has none -
+                // see its own doc comment), so both slots are the same caller token; the only
+                // classification that can actually differ from "caller cancelled" is HTTP-08's
+                // external HttpClient.Timeout shape, which this still needs to recognize the same
+                // way ExecuteAsync does.
+                throw ClassifyCancellation(ex, new CancellationContext(cancellationToken, cancellationToken, Attempt: null));
+            }
 
             if (!response.IsSuccessStatusCode)
             {

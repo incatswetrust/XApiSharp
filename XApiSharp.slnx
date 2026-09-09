@@ -10,6 +10,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/XApiSharp.ContractTests/XApiSharp.ContractTests.csproj" />
     <Project Path="tests/XApiSharp.IntegrationTests/XApiSharp.IntegrationTests.csproj" />
+    <Project Path="tests/XApiSharp.SoakTests/XApiSharp.SoakTests.csproj" />
     <Project Path="tests/XApiSharp.UnitTests/XApiSharp.UnitTests.csproj" />
   </Folder>
   <Folder Name="/tools/">

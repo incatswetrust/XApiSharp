@@ -265,6 +265,39 @@ public class RequestExecutorCoreTests
         Assert.Equal(2, callCount);
     }
 
+    [Fact]
+    public async Task OpenStreamAsync_reports_an_external_HttpClient_Timeout_the_same_way_ExecuteAsync_does()
+    {
+        // HTTP-08: OpenStreamAsync has no separate operation/attempt deadline of its own (see its
+        // own doc comment), but it must still recognize the BCL's own TaskCanceledException{
+        // InnerException: TimeoutException} shape from an external HttpClient.Timeout the same
+        // way the regular Send*Async path does, not let it leak out raw.
+        using var handler = new FakeHttpMessageHandler((_, _) =>
+            throw new TaskCanceledException("The request was canceled due to the configured HttpClient.Timeout.", new TimeoutException()));
+        using var httpClient = new HttpClient(handler);
+        var executor = new RequestExecutor(httpClient, new BearerTokenAuthenticationProvider("t"), new XClientOptions(), TimeProvider.System, new Random(1));
+
+        var ex = await Assert.ThrowsAsync<XRequestTimeoutException>(() => executor.OpenStreamAsync(HttpMethod.Get, "2/test/stream", queryParameters: null, CancellationToken.None));
+
+        Assert.Contains("HttpClient.Timeout", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task OpenStreamAsync_propagates_caller_cancellation_as_is()
+    {
+        using var cts = new CancellationTokenSource();
+        using var handler = new FakeHttpMessageHandler(async (_, ct) =>
+        {
+            await cts.CancelAsync();
+            await Task.Delay(Timeout.Infinite, ct);
+            throw new InvalidOperationException("unreachable - Task.Delay(Timeout.Infinite) should have observed the cancellation above");
+        });
+        using var httpClient = new HttpClient(handler);
+        var executor = new RequestExecutor(httpClient, new BearerTokenAuthenticationProvider("t"), new XClientOptions(), TimeProvider.System, new Random(1));
+
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => executor.OpenStreamAsync(HttpMethod.Get, "2/test/stream", queryParameters: null, cts.Token));
+    }
+
     private static HttpResponseMessage SuccessResponse() => new(HttpStatusCode.OK)
     {
         Content = new StringContent("""{"data":{"id":"1","name":"A","username":"a"}}""", Encoding.UTF8, "application/json"),
