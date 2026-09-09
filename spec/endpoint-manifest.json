@@ -1975,9 +1975,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.GetConversationsAsync / GetConversationsPageAsync / GetConversationsPagesAsync",
+      "requestType": "XApiSharp.Chat.GetChatConversationsRequest",
+      "responseType": "XApiSharp.Chat.GetChatConversationsResponse",
       "flags": {
         "pagination": true,
         "streaming": false,
@@ -1986,8 +1986,11 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.GetConversationsPageAsync_sends_pagination_and_field_params",
+        "ChatContractTests.GetConversationsAsync_pages_across_multiple_calls_via_next_token"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2026,9 +2029,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.CreateConversationAsync",
+      "requestType": "XApiSharp.Chat.CreateChatConversationRequest",
+      "responseType": "XApiSharp.Chat.CreateChatConversationResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2037,8 +2040,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.CreateConversationAsync_sends_participant_keys_and_action_signatures"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2075,9 +2080,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.InitializeGroupAsync",
+      "requestType": "XApiSharp.Chat.InitializeChatGroupRequest",
+      "responseType": "XApiSharp.Chat.InitializeChatGroupResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2086,8 +2091,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.InitializeGroupAsync_sends_no_body"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2126,9 +2133,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.GetConversationAsync",
+      "requestType": "XApiSharp.Chat.GetChatConversationRequest",
+      "responseType": "XApiSharp.Chat.GetChatConversationResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2137,8 +2144,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.GetConversationAsync_substitutes_the_id_path_segment"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2177,9 +2186,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.GetConversationEventsAsync / GetConversationEventsPageAsync / GetConversationEventsPagesAsync",
+      "requestType": "XApiSharp.Chat.GetChatConversationEventsRequest",
+      "responseType": "XApiSharp.Chat.GetChatConversationEventsResponse",
       "flags": {
         "pagination": true,
         "streaming": false,
@@ -2188,8 +2197,11 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.GetConversationEventsPageAsync_sends_the_conversation_id_path_and_fields",
+        "ChatContractTests.GetConversationEventsAsync_pages_across_multiple_calls"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2228,9 +2240,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.AddConversationKeysAsync",
+      "requestType": "XApiSharp.Chat.AddConversationKeysRequest",
+      "responseType": "XApiSharp.Chat.AddConversationKeysResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2239,8 +2251,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.AddConversationKeysAsync_substitutes_the_conversation_id_path_segment"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2279,9 +2293,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.AddGroupMembersAsync",
+      "requestType": "XApiSharp.Chat.AddChatGroupMembersRequest",
+      "responseType": "XApiSharp.Chat.AddChatGroupMembersResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2290,8 +2304,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.AddGroupMembersAsync_sends_user_ids_and_rejects_an_empty_list"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2330,9 +2346,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.SendMessageAsync",
+      "requestType": "XApiSharp.Chat.SendChatMessageRequest",
+      "responseType": "XApiSharp.Chat.SendChatMessageResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2341,8 +2357,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.SendMessageAsync_sends_the_encoded_event_and_message_id"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2381,9 +2399,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.DeleteMessagesAsync",
+      "requestType": "XApiSharp.Chat.DeleteChatMessagesRequest",
+      "responseType": "XApiSharp.Chat.DeleteChatMessagesResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2392,8 +2410,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.DeleteMessagesAsync_sends_the_delete_action_and_sequence_ids"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2432,9 +2452,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.MarkConversationReadAsync",
+      "requestType": "XApiSharp.Chat.MarkChatConversationReadRequest",
+      "responseType": "XApiSharp.Chat.MarkChatConversationReadResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2443,8 +2463,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.MarkConversationReadAsync_sends_the_seen_until_sequence_id"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2483,9 +2505,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.SendTypingIndicatorAsync",
+      "requestType": "XApiSharp.Chat.SendChatTypingIndicatorRequest",
+      "responseType": "XApiSharp.Chat.SendChatTypingIndicatorResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2494,8 +2516,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.SendTypingIndicatorAsync_substitutes_the_conversation_id_path_segment"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2532,9 +2556,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.UploadMediaInitializeAsync",
+      "requestType": "XApiSharp.Chat.ChatMediaUploadInitializeRequest",
+      "responseType": "XApiSharp.Chat.ChatMediaUploadInitializeResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2543,8 +2567,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.UploadMediaInitializeAsync_sends_conversation_id_and_total_bytes"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2581,9 +2607,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.UploadMediaAppendAsync",
+      "requestType": "XApiSharp.Chat.ChatMediaUploadAppendRequest",
+      "responseType": "XApiSharp.Chat.ChatMediaUploadAppendResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2592,8 +2618,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.UploadMediaAppendAsync_sends_multipart_segment_and_conversation_fields"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2630,9 +2658,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.UploadMediaFinalizeAsync",
+      "requestType": "XApiSharp.Chat.ChatMediaUploadFinalizeRequest",
+      "responseType": "XApiSharp.Chat.ChatMediaUploadFinalizeResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2641,8 +2669,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.UploadMediaFinalizeAsync_sends_num_parts_as_a_string"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2679,9 +2709,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.DownloadMediaAsync",
+      "requestType": "XApiSharp.Chat.ChatMediaDownloadRequest",
+      "responseType": "byte[]",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2690,8 +2720,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.DownloadMediaAsync_returns_raw_bytes"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -2730,9 +2762,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.AddUserPublicKeyAsync",
+      "requestType": "XApiSharp.Chat.AddUserPublicKeyRequest",
+      "responseType": "XApiSharp.Chat.AddUserPublicKeyResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -2741,8 +2773,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.AddUserPublicKeyAsync_sends_the_nested_public_key_body"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -7533,7 +7567,7 @@
     {
       "key": "GET /2/users/public_keys",
       "operationId": "getUsersPublicKeys",
-      "group": "Users",
+      "group": "Chat",
       "openApiTags": [
         "Users"
       ],
@@ -7560,9 +7594,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.GetUsersPublicKeysAsync",
+      "requestType": "XApiSharp.Chat.GetUsersPublicKeysRequest",
+      "responseType": "XApiSharp.Chat.GetUsersPublicKeysResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -7571,8 +7605,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.GetUsersPublicKeysAsync_sends_comma_joined_ids_and_requires_at_least_one"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -8888,7 +8924,7 @@
     {
       "key": "GET /2/users/{id}/public_keys",
       "operationId": "getUsersPublicKey",
-      "group": "Users",
+      "group": "Chat",
       "openApiTags": [
         "Users"
       ],
@@ -8918,9 +8954,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Chat.GetUserPublicKeyAsync",
+      "requestType": "XApiSharp.Chat.GetUserPublicKeyRequest",
+      "responseType": "XApiSharp.Chat.GetUserPublicKeyResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -8929,8 +8965,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ChatContractTests.GetUserPublicKeyAsync_substitutes_the_user_id_path_segment"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,

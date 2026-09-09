@@ -3,6 +3,7 @@ using XApiSharp.Articles;
 using XApiSharp.Authentication;
 using XApiSharp.Bots;
 using XApiSharp.Broadcasts;
+using XApiSharp.Chat;
 using XApiSharp.Communities;
 using XApiSharp.CommunityNotes;
 using XApiSharp.Compliance;
@@ -68,6 +69,7 @@ public sealed class XApiClient
         Media = new MediaClient(executor, resolvedTimeProvider);
         Streaming = new StreamingClient(executor, resolvedTimeProvider);
         Webhooks = new WebhooksClient(executor);
+        Chat = new ChatClient(executor);
     }
 
     public UsersClient Users { get; }
@@ -109,4 +111,6 @@ public sealed class XApiClient
     public StreamingClient Streaming { get; }
 
     public WebhooksClient Webhooks { get; }
+
+    public ChatClient Chat { get; }
 }
