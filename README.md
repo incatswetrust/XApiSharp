@@ -8,9 +8,9 @@ An independent, community-maintained C#/.NET SDK for the public [X API v2](https
 
 ## Status
 
-🚧 **Pre-release, published as `1.0.0-beta.1`** —
-[NuGet.org](https://www.nuget.org/packages/XApiSharp.Net/1.0.0-beta.1) /
-[GitHub Release](https://github.com/incatswetrust/XApiSharp/releases/tag/v1.0.0-beta.1). Not
+🚧 **Pre-release, published as `1.0.0-beta.2`** —
+[NuGet.org](https://www.nuget.org/packages/XApiSharp.Net/1.0.0-beta.2) /
+[GitHub Release](https://github.com/incatswetrust/XApiSharp/releases/tag/v1.0.0-beta.2). Not
 `1.0.0` stable yet: all 190 in-scope operations from the OpenAPI snapshot have a typed
 implementation and contract-test coverage (100%/100% - see `docs/coverage.md`), but **live
 validation against the real X API is currently blocked** - the required scenarios (spec section
@@ -19,8 +19,8 @@ operation is honestly recorded as `blocked-by-budget` in `spec/endpoint-manifest
 "verified in production."
 
 ```bash
-dotnet add package XApiSharp.Net --version 1.0.0-beta.1
-dotnet add package XApiSharp.Net.Extensions.DependencyInjection --version 1.0.0-beta.1
+dotnet add package XApiSharp.Net --version 1.0.0-beta.2
+dotnet add package XApiSharp.Net.Extensions.DependencyInjection --version 1.0.0-beta.2
 ```
 
 Work proceeds in stages E0–E10 (inventory → vertical slice → full endpoint coverage → hardening →

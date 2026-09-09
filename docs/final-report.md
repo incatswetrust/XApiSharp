@@ -6,17 +6,17 @@ today - nothing here is a command still waiting to be run.
 ## 1. Repository and release
 
 - Repository: https://github.com/incatswetrust/XApiSharp
-- Release tag: [`v1.0.0-beta.1`](https://github.com/incatswetrust/XApiSharp/releases/tag/v1.0.0-beta.1)
-  (commit `6be8138ee5bc1e151254a7e4ad9d1f53a92d399c`)
+- Release tag: [`v1.0.0-beta.2`](https://github.com/incatswetrust/XApiSharp/releases/tag/v1.0.0-beta.2)
+  (commit `afef4a6561f52c8d591d000e4756fa1b70d49369`)
 
 ## 2. Published packages
 
-- [XApiSharp.Net 1.0.0-beta.1](https://www.nuget.org/packages/XApiSharp.Net/1.0.0-beta.1)
-- [XApiSharp.Net.Extensions.DependencyInjection 1.0.0-beta.1](https://www.nuget.org/packages/XApiSharp.Net.Extensions.DependencyInjection/1.0.0-beta.1)
+- [XApiSharp.Net 1.0.0-beta.2](https://www.nuget.org/packages/XApiSharp.Net/1.0.0-beta.2)
+- [XApiSharp.Net.Extensions.DependencyInjection 1.0.0-beta.2](https://www.nuget.org/packages/XApiSharp.Net.Extensions.DependencyInjection/1.0.0-beta.2)
 
 ## 3. Provenance
 
-- Release commit: `6be8138ee5bc1e151254a7e4ad9d1f53a92d399c`
+- Release commit: `afef4a6561f52c8d591d000e4756fa1b70d49369`
 - API snapshot: retrieved 2026-09-06T18:22:51Z from `https://api.x.com/2/openapi.json`,
   SHA-256 `68f24f5f2332bd60127a86e46f5f34d4b45fc1ad4ff19a91b1d24c3ccda7f995` (see
   `spec/spec-manifest.json`)
@@ -34,7 +34,7 @@ today - nothing here is a command still waiting to be run.
 | Implementation coverage | 190 / 190 (100%) |
 | Contract coverage | 190 / 190 (100%) |
 | Live validation coverage | 0 / 190 (0%) - `blocked-by-budget`, see Limitations |
-| Branch coverage (hand-written core) | 86.0% (478/556), gate is 80% |
+| Branch coverage (hand-written core) | 86.4% (496/574), gate is 80% |
 
 Full per-family and per-file detail: `docs/coverage.md`.
 
@@ -42,18 +42,19 @@ Full per-family and per-file detail: `docs/coverage.md`.
 
 - CI (every PR/push): [`ci.yml`](https://github.com/incatswetrust/XApiSharp/actions/workflows/ci.yml)
 - Release-candidate build (this release's artifacts):
-  [run 34392541475](https://github.com/incatswetrust/XApiSharp/actions/runs/34392541475)
+  [run 34399244525](https://github.com/incatswetrust/XApiSharp/actions/runs/34399244525)
   (Linux + Windows build/test/pack, macOS install smoke check - all green)
-- Publish run: [run 34392911454](https://github.com/incatswetrust/XApiSharp/actions/runs/34392911454)
-  (pushed both packages via NuGet Trusted Publishing OIDC; its own bounded wait for feed indexing
-  timed out before NuGet finished indexing - not a failure of the push itself, see issue #10's
-  closing comment for the full sequence. Post-publish consumer verification and the GitHub Release
-  were completed manually once indexing finished, using the same scripts the workflow itself uses)
+- Publish run: [run 34399513364](https://github.com/incatswetrust/XApiSharp/actions/runs/34399513364)
+  - pushed both packages via NuGet Trusted Publishing OIDC, waited for feed indexing, ran the
+    post-publish consumer check, and created the GitHub Release, entirely on its own (4m39s
+    end to end) - `eng/wait-for-nuget-index.sh`'s timeout was raised to 2700s after the
+    `1.0.0-beta.1` publish measured indexing taking longer than the original 900s default; this
+    run confirms that fix
 - Consumer tests: `tests/XApiSharp.PackageTests` - run against the actual published packages
   post-publish, 6/6 passing (read, typed-exception error, pagination, cancellation, both DI
   registration modes)
 - `release-manifest.json` / `SHA256SUMS.txt`: attached to the
-  [GitHub Release](https://github.com/incatswetrust/XApiSharp/releases/tag/v1.0.0-beta.1)
+  [GitHub Release](https://github.com/incatswetrust/XApiSharp/releases/tag/v1.0.0-beta.2)
 
 ## 6. Known limitations
 
@@ -61,7 +62,7 @@ Full per-family and per-file detail: `docs/coverage.md`.
   flow, a write+delete cycle, one end-to-end scenario per media/streaming/webhook protocol) needs a
   paid X API tier and real credentials, neither available for this project. Every operation is
   recorded as `blocked-by-budget` in `spec/endpoint-manifest.json`, never faked as verified. This
-  is also why this release is `1.0.0-beta.1`, not `1.0.0` - spec 27's stable-acceptance criteria
+  is also why this release is `1.0.0-beta.2`, not `1.0.0` - spec 27's stable-acceptance criteria
   require that minimum.
 - **Chat HTTP is not an encrypted messenger.** `XApiClient.Chat` covers X Chat's documented v2 HTTP
   operations (conversations, messages, keys, participants) byte-for-byte per the contract, but this
@@ -73,10 +74,6 @@ Full per-family and per-file detail: `docs/coverage.md`.
   `CreateDirectMessagesByConversationIdRequest` as needing a hand-written pre-send validation check
   (X requires at least one of `text`/`attachments`; NSwag drops that cross-field constraint,
   verified benign - no data loss, just the validation itself is currently unenforced client-side).
-- **`XClientOptions`/`RequestExecutor` rate-limit state is per-call, not persisted across calls**
-  (RATE-03/04/05 not yet implemented - tracked as issue #15). Each call still reads/honors the
-  server's own rate-limit headers correctly; what's missing is proactively avoiding a 429 using
-  state from a *previous* call.
 - **Package ownership is a personal/small-org NuGet account** (`itrustincats`), not a dedicated
   organization-wide process - see `docs/releasing.md` for the Trusted Publishing setup if that
   changes.
@@ -86,7 +83,7 @@ Full per-family and per-file detail: `docs/coverage.md`.
 ## 7. Install instructions and a verified example
 
 ```bash
-dotnet add package XApiSharp.Net --version 1.0.0-beta.1
+dotnet add package XApiSharp.Net --version 1.0.0-beta.2
 ```
 
 ```csharp
@@ -129,7 +126,7 @@ without external access it doesn't have.
 - [x] SourceLink, XML docs, README, license, and symbols verified
 - [x] Versions, tag, commit, and release manifest are consistent
 - [ ] **Both packages at version 1.0.0 are available on NuGet.org** - not met; this release is
-      `1.0.0-beta.1` by deliberate choice (see Limitations) - `1.0.0` follows once live validation
+      `1.0.0-beta.2` by deliberate choice (see Limitations) - `1.0.0` follows once live validation
       passes
 - [x] Installing the published version is confirmed in a clean environment
 - [x] GitHub Release and docs contain real links
@@ -141,7 +138,6 @@ without external access it doesn't have.
 
 - Unblock live validation (needs a real X test app + paid-tier budget - `tests/XApiSharp.IntegrationTests/README.md`
   has the ready-to-run checklist) → bump to `1.0.0` stable once the mandatory minimum passes.
-- Issue #15: persist rate-limit state across calls (RATE-03/04/05).
 - Fix the `CreateDirectMessagesByConversationIdRequest` cross-field validation gap noted above.
 - A manual glance at the rendered NuGet.org package pages (README rendering, symbols) - the one
   spec-23.3 check not automated by `eng/post-publish-verify.sh`.
