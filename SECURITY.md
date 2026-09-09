@@ -1,7 +1,14 @@
 # Security Policy
 
-TODO: replace with the actual reporting channel for this repository before the first public
-release (e.g. GitHub Security Advisories on the real repository, or a real maintainer contact).
-Do not publish a fabricated contact address.
+If you discover a security vulnerability in XApiSharp, please report it privately rather than as a
+public GitHub issue:
+
+- Preferred: open a [GitHub Security Advisory](https://github.com/incatswetrust/XApiSharp/security/advisories/new)
+  for this repository.
+- Alternatively, email **chaikovskyi.gev@gmail.com** with details and, if possible, steps to
+  reproduce.
+
+We'll acknowledge receipt and work with you on a fix and coordinated disclosure timeline before
+any public details are published.
 
 Do not report vulnerabilities as public GitHub issues.

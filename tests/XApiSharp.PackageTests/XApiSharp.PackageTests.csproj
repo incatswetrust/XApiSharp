@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Spec section 22.3: a consumer-scenario test against the PACKED output, not the source tree.
+    Deliberately NOT listed in XApiSharp.slnx and NEVER given a ProjectReference to src/ - both
+    of those would silently make this test exercise the source instead of what actually ships.
+    Only run via eng/package-consumer-test.sh, which supplies -p:PackageUnderTestVersion and a
+    NuGet source pointing at the local pack output.
+  -->
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <!-- The package-under-test version is dynamic per release; a committed lock file makes no
+         sense here (and Directory.Build.props' RestorePackagesWithLockFile=true would otherwise
+         apply, since that file is auto-imported for every project under the repo root). -->
+    <RestorePackagesWithLockFile>false</RestorePackagesWithLockFile>
+    <PackageUnderTestVersion Condition="'$(PackageUnderTestVersion)' == ''">0.0.0-local</PackageUnderTestVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- VersionOverride (not a Directory.Packages.props entry): CPM-compatible per-reference
+         override for a version that changes every release run, supplied via -p: on the CLI. -->
+    <PackageReference Include="XApiSharp.Net" VersionOverride="$(PackageUnderTestVersion)" />
+    <PackageReference Include="XApiSharp.Net.Extensions.DependencyInjection" VersionOverride="$(PackageUnderTestVersion)" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" VersionOverride="10.0.12" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,86 @@
+name: Release Candidate
+
+# Spec section 22.2: accepts a verified SemVer version and an exact commit/tag - never publishes
+# an arbitrary state of the working directory. Produces verified, hashed artifacts and a
+# release-manifest.json; does NOT publish to NuGet.org (spec section 23 - blocked on real package
+# ownership/Trusted Publishing being configured, see docs/releasing.md).
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Expected SemVer version - must match Directory.Build.props' <Version> at the given ref"
+        required: true
+      ref:
+        description: "Exact commit SHA or tag to release from"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-and-test:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    env:
+      CI: "true"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Run release-candidate pipeline (eng/release.sh)
+        shell: bash
+        run: |
+          eng/release.sh "${{ inputs.version }}" "${{ github.sha }}" "${{ inputs.ref }}" \
+            "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+      # Split into two artifacts (rather than one with mixed path roots) so downloading just the
+      # packages for the macOS smoke check below lands them flat at the expected path, with no
+      # extra nesting from upload-artifact's common-ancestor path preservation.
+      - name: Upload packages (${{ matrix.os }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate-${{ inputs.version }}-${{ matrix.os }}-packages
+          path: |
+            artifacts/packages/*.nupkg
+            artifacts/packages/*.snupkg
+          if-no-files-found: error
+
+      - name: Upload reports (${{ matrix.os }})
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-candidate-${{ inputs.version }}-${{ matrix.os }}-reports
+          path: |
+            artifacts/SHA256SUMS.txt
+            artifacts/release-manifest.json
+            artifacts/branch-coverage.txt
+          if-no-files-found: error
+
+  macos-install-smoke-check:
+    needs: build-and-test
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      # Spec 22.2: "install and basic-use check also runs on macOS" - packages themselves are
+      # OS-agnostic (built once on ubuntu-latest above), so this only needs the pre-publish
+      # consumer check, not a full rebuild.
+      - uses: actions/download-artifact@v4
+        with:
+          name: release-candidate-${{ inputs.version }}-ubuntu-latest
+          path: artifacts/packages
+
+      - name: Install and basic-use smoke check
+        run: eng/package-consumer-test.sh artifacts/packages "${{ inputs.version }}"

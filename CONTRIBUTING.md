@@ -34,3 +34,12 @@ input).
 - Unit and contract tests run on every PR and must not hit the real X API.
 - Integration tests (`tests/XApiSharp.IntegrationTests`) are explicitly opt-in and require a
   dedicated test X application; see that project's README.
+- `tests/XApiSharp.PackageTests` verifies the *packed* output, not source - it's deliberately not
+  in `XApiSharp.slnx` and never gets a `ProjectReference`. Run it via
+  `eng/package-consumer-test.sh <packages-dir> <version>`, not directly.
+
+## Releasing
+
+`eng/release.sh <version>` runs the full release-candidate pipeline (build, test, coverage gates,
+pack, hash, manifest, consumer test) locally for a dry run. See `docs/releasing.md` for the full
+picture, including what's still blocked on external NuGet setup.

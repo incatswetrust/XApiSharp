@@ -15,11 +15,13 @@
     <Deterministic>true</Deterministic>
     <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 
-    <!-- Early, incomplete coverage per spec section 21.2 versioning table. -->
-    <Version>0.1.0-alpha.1</Version>
+    <!-- Full coverage achieved (190/190 operations implemented + contract-tested, spec 21.2's
+         "full coverage, stabilization" trigger) - live validation and NuGet ownership are still
+         pending, so this is a beta, not yet a release candidate. -->
+    <Version>1.0.0-beta.1</Version>
 
-    <Authors>TODO-set-real-author</Authors>
-    <Company>TODO-set-real-owner</Company>
+    <Authors>Oleksii Chaikovskyi</Authors>
+    <Company>Incatswetrust</Company>
     <PackageProjectUrl>https://github.com/incatswetrust/XApiSharp</PackageProjectUrl>
     <RepositoryUrl>https://github.com/incatswetrust/XApiSharp</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

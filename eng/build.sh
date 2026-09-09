@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Single documented entry point for restore -> build -> test -> pack (spec section 22.2).
-# Release-candidate specific steps (generation check, package-consumer test, artifact
-# hashing) are added here as those stages (E1/E8) land.
+# Plain local dev loop: restore -> build -> test -> pack. For an actual release candidate
+# (version check, coverage gates, artifact hashing, release manifest, package-consumer test), use
+# eng/release.sh instead - see docs/releasing.md.
 set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")/.."

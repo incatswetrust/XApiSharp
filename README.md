@@ -16,10 +16,12 @@ this project yet - every operation is honestly recorded as `blocked-by-budget` i
 `spec/endpoint-manifest.json`, not "verified in production."
 
 Work proceeds in stages E0–E10 (inventory → vertical slice → full endpoint coverage → hardening →
-release → maintenance); E0–E7 are complete (documentation, samples, DI package, diagnostics, and
-NuGet packaging metadata are all in place - `Authors`/`Company` remain placeholders pending a real
-maintainer identity, deliberately left unfilled rather than fabricated). See `docs/` for the
-design decisions (ADRs) and `docs/coverage.md` for the operation coverage matrix.
+release → maintenance); E0–E9's pipeline is complete (documentation, samples, DI package,
+diagnostics, NuGet packaging metadata, the release-candidate pipeline, and the publish workflow
+are all in place - see `docs/releasing.md`). A NuGet Trusted Publishing policy is configured; the
+first actual publish (`1.0.0-beta.1` - not `1.0.0` yet, since live validation is still
+blocked-by-budget) hasn't been triggered. See `docs/` for the design decisions (ADRs)
+and `docs/coverage.md` for the operation coverage matrix.
 
 ## Repository layout
 

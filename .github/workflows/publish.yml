@@ -1,0 +1,112 @@
+name: Publish to NuGet.org
+
+# Spec section 23: publishes ALREADY-VERIFIED artifacts from a specific completed
+# release.yml run - this workflow never rebuilds anything itself (spec 23.2 step 4: "fetch the
+# release job's verified artifacts and re-check their hashes" before pushing them). Requires a
+# NuGet Trusted Publishing policy configured on nuget.org first (Repository Owner/Repository/
+# Workflow File matching this file's name exactly - see docs/releasing.md) and a NUGET_USER
+# repository secret (the nuget.org profile name, never an email address).
+#
+# External actions here are pinned to a specific commit SHA, not a floating tag (spec 23.1: "pin
+# verified revisions of external actions in the [publish] workflow") - this is the one workflow in
+# the repo that can push a package under this project's identity, so a renamed/compromised tag is
+# a real supply-chain risk here in a way it isn't for ci.yml/release.yml.
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Exact SemVer version to publish - must match the release-manifest.json of the given run"
+        required: true
+      release_run_id:
+        description: "The completed release.yml run ID whose artifacts to publish (not rebuilt here)"
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write # for creating the GitHub Release
+      id-token: write # for NuGet Trusted Publishing OIDC
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.2.2
+
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.0
+        with:
+          global-json-file: global.json
+
+      - name: Download verified packages from the release run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-candidate-${{ inputs.version }}-ubuntu-latest-packages
+          path: artifacts/packages
+          run-id: ${{ inputs.release_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Download verified reports from the release run
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-candidate-${{ inputs.version }}-ubuntu-latest-reports
+          path: artifacts/reports
+          run-id: ${{ inputs.release_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Verify artifact hashes and version against the release manifest (spec 23.2 step 4)
+        run: |
+          dotnet run --project tools/XApiSharp.CodeGen -- verify-artifacts \
+            --dir artifacts/packages \
+            --sums artifacts/reports/SHA256SUMS.txt \
+            --release-manifest artifacts/reports/release-manifest.json \
+            --expected-version "${{ inputs.version }}"
+
+      - name: NuGet login (OIDC -> short-lived API key)
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1.2.0
+        id: nuget-login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      # Two separate push calls (main package, then the DI package) sharing the one API key from
+      # the login step above - the OIDC token itself is single-use to obtain that key, but the key
+      # it returns is valid for an hour and reusable across multiple pushes within that window.
+      # dotnet nuget push auto-detects and pushes the sibling .snupkg from the same directory, so
+      # no separate symbol-push command is needed.
+      - name: Push XApiSharp.Net
+        run: >
+          dotnet nuget push "artifacts/packages/XApiSharp.Net.${{ inputs.version }}.nupkg"
+          --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+
+      - name: Push XApiSharp.Net.Extensions.DependencyInjection
+        run: >
+          dotnet nuget push "artifacts/packages/XApiSharp.Net.Extensions.DependencyInjection.${{ inputs.version }}.nupkg"
+          --api-key ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+
+      - name: Wait for feed indexing (bounded)
+        run: eng/wait-for-nuget-index.sh "${{ inputs.version }}"
+
+      - name: Post-publish consumer verification (spec 23.3)
+        run: eng/post-publish-verify.sh "${{ inputs.version }}"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          # SemVer prerelease identifier (a hyphen, e.g. "-beta.1"/"-rc.1") -> mark the GitHub
+          # Release as a pre-release too; a bare "X.Y.Z" is the first real stable release.
+          PRERELEASE_FLAG=()
+          if [[ "$VERSION" == *-* ]]; then
+            PRERELEASE_FLAG=(--prerelease)
+          fi
+
+          gh release create "v$VERSION" \
+            artifacts/packages/*.nupkg artifacts/packages/*.snupkg \
+            artifacts/reports/release-manifest.json artifacts/reports/SHA256SUMS.txt \
+            --title "v$VERSION" \
+            --notes "Published to NuGet.org: https://www.nuget.org/packages/XApiSharp.Net/$VERSION and https://www.nuget.org/packages/XApiSharp.Net.Extensions.DependencyInjection/$VERSION. See the attached release-manifest.json for the full provenance (commit, API snapshot, coverage) and SHA256SUMS.txt for artifact hashes." \
+            "${PRERELEASE_FLAG[@]}"
