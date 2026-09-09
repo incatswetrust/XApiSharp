@@ -61,7 +61,7 @@ public sealed class XApiClient
         Usage = new UsageClient(executor);
         Account = new AccountClient(executor);
         General = new GeneralClient(executor);
-        Compliance = new ComplianceClient(executor);
+        Compliance = new ComplianceClient(executor, resolvedTimeProvider);
         Connections = new ConnectionsClient(executor);
         Bots = new BotsClient(executor);
         Broadcasts = new BroadcastsClient(executor);

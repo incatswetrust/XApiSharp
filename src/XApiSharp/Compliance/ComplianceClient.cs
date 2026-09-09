@@ -1,20 +1,22 @@
 using XApiSharp.Common;
+using XApiSharp.Errors;
 using XApiSharp.Transport;
 
 namespace XApiSharp.Compliance;
 
 /// <summary>
-/// Typed methods for the Compliance family (6 operations per the registry) - job-status polling
-/// only. The long-running "wait for completion" convenience helper (spec section 17.2) lands with
-/// the rest of the jobs/long-operations work in E5.
+/// Typed methods for the Compliance family (6 operations per the registry), plus the "wait for
+/// completion" polling convenience over them (spec section 17.2).
 /// </summary>
 public sealed class ComplianceClient
 {
     private readonly RequestExecutor _executor;
+    private readonly TimeProvider _timeProvider;
 
-    internal ComplianceClient(RequestExecutor executor)
+    internal ComplianceClient(RequestExecutor executor, TimeProvider timeProvider)
     {
         _executor = executor;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -134,5 +136,49 @@ public sealed class ComplianceClient
             request.Content,
             query,
             cancellationToken);
+    }
+
+    /// <summary>
+    /// Polls <c>GET /2/compliance/jobs/{id}</c> until the job reaches <c>complete</c> or the
+    /// deadline/cancellation fires (spec section 17.2). Throws <see cref="XJobPollingException"/>
+    /// if the job reports <c>failed</c> or the deadline is reached first - <see cref="XJobPollingException.LastKnownStatus"/>
+    /// preserves whatever status was last observed. Per HTTP-11, the returned job's
+    /// <see cref="ComplianceJob.DownloadUrl"/>/<see cref="ComplianceJob.UploadUrl"/> are opaque,
+    /// caller-followed links - this method never fetches them, and following one yourself must not
+    /// attach the X <c>Authorization</c> header (it may be a signed third-party storage URL, not
+    /// an X API host). Never resubmits <see cref="CreateJobAsync"/> on your behalf - deciding
+    /// whether creating a new job is safe after an unknown outcome is a caller decision (spec
+    /// 17.2: "не создавать job повторно при неизвестном исходе первого запроса").
+    /// </summary>
+    public async Task<ComplianceJob> WaitForCompletionAsync(string jobId, XJobWaitOptions? options = null, CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(jobId);
+        options ??= new XJobWaitOptions();
+
+        var deadline = _timeProvider.GetUtcNow() + options.Timeout;
+
+        while (true)
+        {
+            var response = await GetJobByIdAsync(new GetJobByIdRequest { Id = jobId, Fields = options.Fields }, cancellationToken).ConfigureAwait(false);
+            var job = response.Body?.Data
+                ?? throw new XJobPollingException($"Get compliance job by id returned no data for job '{jobId}'.", jobId, lastKnownStatus: null);
+
+            if (job.Status == "complete")
+            {
+                return job;
+            }
+
+            if (job.Status == "failed")
+            {
+                throw new XJobPollingException($"Compliance job '{jobId}' failed.", jobId, job.Status);
+            }
+
+            if (_timeProvider.GetUtcNow() + options.PollInterval > deadline)
+            {
+                throw new XJobPollingException($"Timed out waiting for compliance job '{jobId}' to complete.", jobId, job.Status);
+            }
+
+            await Task.Delay(options.PollInterval, _timeProvider, cancellationToken).ConfigureAwait(false);
+        }
     }
 }
