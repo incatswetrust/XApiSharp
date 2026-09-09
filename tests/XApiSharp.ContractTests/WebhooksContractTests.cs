@@ -7,7 +7,8 @@ using XApiSharp.Webhooks;
 
 namespace XApiSharp.ContractTests;
 
-/// <summary>Contract checks for the 8 Webhooks operations, per spec section 19.3.</summary>
+/// <summary>Contract checks for the 8 Webhooks operations plus the 5 Account Activity subscription
+/// operations (issue #18), per spec section 19.3.</summary>
 public class WebhooksContractTests
 {
     [Fact]
@@ -147,6 +148,83 @@ public class WebhooksContractTests
         var response = await client.Webhooks.ValidateAsync(new ValidateWebhooksRequest { WebhookId = "1" });
 
         Assert.True(response.Body!.Data!.Valid);
+    }
+
+    [Fact]
+    public async Task ValidateAccountActivitySubscriptionAsync_substitutes_the_webhook_id_path_segment()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal("/2/account_activity/webhooks/1/subscriptions/all", request.RequestUri!.AbsolutePath);
+            return Task.FromResult(SuccessResponse("""{"data":{"subscribed":true}}"""));
+        });
+        var client = CreateClient(handler);
+
+        var response = await client.Webhooks.ValidateAccountActivitySubscriptionAsync(new ValidateAccountActivitySubscriptionRequest { WebhookId = "1" });
+
+        Assert.True(response.Body!.Data!.Subscribed);
+    }
+
+    [Fact]
+    public async Task CreateAccountActivitySubscriptionAsync_sends_no_body()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal(HttpMethod.Post, request.Method);
+            Assert.Equal("/2/account_activity/webhooks/1/subscriptions/all", request.RequestUri!.AbsolutePath);
+            return Task.FromResult(SuccessResponse("""{"data":{"subscribed":true}}"""));
+        });
+        var client = CreateClient(handler);
+
+        var response = await client.Webhooks.CreateAccountActivitySubscriptionAsync(new CreateAccountActivitySubscriptionRequest { WebhookId = "1" });
+
+        Assert.True(response.Body!.Data!.Subscribed);
+    }
+
+    [Fact]
+    public async Task GetAccountActivitySubscriptionsAsync_substitutes_the_webhook_id_path_segment()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal("/2/account_activity/webhooks/1/subscriptions/all/list", request.RequestUri!.AbsolutePath);
+            return Task.FromResult(SuccessResponse("""{"data":{"webhook_id":"1","subscriptions":[{"user_id":"9"}]}}"""));
+        });
+        var client = CreateClient(handler);
+
+        var response = await client.Webhooks.GetAccountActivitySubscriptionsAsync(new GetAccountActivitySubscriptionsRequest { WebhookId = "1" });
+
+        Assert.Equal("9", response.Body!.Data!.Subscriptions![0].UserId);
+    }
+
+    [Fact]
+    public async Task DeleteAccountActivitySubscriptionAsync_substitutes_webhook_and_user_id_path_segments()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal(HttpMethod.Delete, request.Method);
+            Assert.Equal("/2/account_activity/webhooks/1/subscriptions/9/all", request.RequestUri!.AbsolutePath);
+            return Task.FromResult(SuccessResponse("""{"data":{"subscribed":false}}"""));
+        });
+        var client = CreateClient(handler);
+
+        var response = await client.Webhooks.DeleteAccountActivitySubscriptionAsync(new DeleteAccountActivitySubscriptionRequest { WebhookId = "1", UserId = "9" });
+
+        Assert.False(response.Body!.Data!.Subscribed);
+    }
+
+    [Fact]
+    public async Task GetAccountActivitySubscriptionCountAsync_hits_the_count_path()
+    {
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            Assert.Equal("/2/account_activity/subscriptions/count", request.RequestUri!.AbsolutePath);
+            return Task.FromResult(SuccessResponse("""{"data":{"subscriptions_count_all":"42"}}"""));
+        });
+        var client = CreateClient(handler);
+
+        var response = await client.Webhooks.GetAccountActivitySubscriptionCountAsync(new GetAccountActivitySubscriptionCountRequest());
+
+        Assert.Equal("42", response.Body!.Data!.SubscriptionsCountAll);
     }
 
     private static HttpResponseMessage SuccessResponse(string json) => new(HttpStatusCode.OK)

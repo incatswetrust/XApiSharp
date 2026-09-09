@@ -120,9 +120,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.GetAccountActivitySubscriptionCountAsync",
+      "requestType": "XApiSharp.Webhooks.GetAccountActivitySubscriptionCountRequest",
+      "responseType": "XApiSharp.Webhooks.GetAccountActivitySubscriptionCountResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -131,8 +131,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.GetAccountActivitySubscriptionCountAsync_hits_the_count_path"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -172,9 +174,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.ValidateAccountActivitySubscriptionAsync",
+      "requestType": "XApiSharp.Webhooks.ValidateAccountActivitySubscriptionRequest",
+      "responseType": "XApiSharp.Webhooks.ValidateAccountActivitySubscriptionResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -183,8 +185,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.ValidateAccountActivitySubscriptionAsync_substitutes_the_webhook_id_path_segment"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -224,9 +228,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.CreateAccountActivitySubscriptionAsync",
+      "requestType": "XApiSharp.Webhooks.CreateAccountActivitySubscriptionRequest",
+      "responseType": "XApiSharp.Webhooks.CreateAccountActivitySubscriptionResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -235,8 +239,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.CreateAccountActivitySubscriptionAsync_sends_no_body"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -267,9 +273,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.GetAccountActivitySubscriptionsAsync",
+      "requestType": "XApiSharp.Webhooks.GetAccountActivitySubscriptionsRequest",
+      "responseType": "XApiSharp.Webhooks.GetAccountActivitySubscriptionsResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -278,8 +284,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.GetAccountActivitySubscriptionsAsync_substitutes_the_webhook_id_path_segment"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -310,9 +318,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Webhooks.DeleteAccountActivitySubscriptionAsync",
+      "requestType": "XApiSharp.Webhooks.DeleteAccountActivitySubscriptionRequest",
+      "responseType": "XApiSharp.Webhooks.DeleteAccountActivitySubscriptionResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -321,8 +329,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "WebhooksContractTests.DeleteAccountActivitySubscriptionAsync_substitutes_webhook_and_user_id_path_segments"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -353,9 +363,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Activity.DeleteSubscriptionsByIdsAsync",
+      "requestType": "XApiSharp.Activity.DeleteActivitySubscriptionsByIdsRequest",
+      "responseType": "XApiSharp.Activity.DeleteActivitySubscriptionsByIdsResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -364,8 +374,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ActivityContractTests.DeleteSubscriptionsByIdsAsync_sends_comma_joined_ids_and_parses_partial_results"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -407,9 +419,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Activity.GetSubscriptionsAsync",
+      "requestType": "XApiSharp.Activity.GetActivitySubscriptionsRequest",
+      "responseType": "XApiSharp.Activity.GetActivitySubscriptionsResponse",
       "flags": {
         "pagination": true,
         "streaming": false,
@@ -418,8 +430,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ActivityContractTests.GetSubscriptionsAsync_sends_max_results_and_pagination_token"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -458,9 +472,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Activity.CreateSubscriptionAsync",
+      "requestType": "XApiSharp.Activity.CreateActivitySubscriptionRequest",
+      "responseType": "XApiSharp.Activity.CreateActivitySubscriptionResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -469,8 +483,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ActivityContractTests.CreateSubscriptionAsync_sends_event_type_and_filter"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -509,9 +525,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Activity.DeleteSubscriptionAsync",
+      "requestType": "XApiSharp.Activity.DeleteActivitySubscriptionRequest",
+      "responseType": "XApiSharp.Activity.DeleteActivitySubscriptionResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -520,8 +536,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ActivityContractTests.DeleteSubscriptionAsync_substitutes_the_subscription_id_path_segment"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -560,9 +578,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Activity.UpdateSubscriptionAsync",
+      "requestType": "XApiSharp.Activity.UpdateActivitySubscriptionRequest",
+      "responseType": "XApiSharp.Activity.UpdateActivitySubscriptionResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -571,8 +589,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "ActivityContractTests.UpdateSubscriptionAsync_sends_tag_and_webhook_id"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,

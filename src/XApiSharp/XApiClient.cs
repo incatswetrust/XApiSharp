@@ -1,4 +1,5 @@
 using XApiSharp.Account;
+using XApiSharp.Activity;
 using XApiSharp.Articles;
 using XApiSharp.Authentication;
 using XApiSharp.Bots;
@@ -70,6 +71,7 @@ public sealed class XApiClient
         Streaming = new StreamingClient(executor, resolvedTimeProvider);
         Webhooks = new WebhooksClient(executor);
         Chat = new ChatClient(executor);
+        Activity = new ActivityClient(executor);
     }
 
     public UsersClient Users { get; }
@@ -113,4 +115,6 @@ public sealed class XApiClient
     public WebhooksClient Webhooks { get; }
 
     public ChatClient Chat { get; }
+
+    public ActivityClient Activity { get; }
 }
