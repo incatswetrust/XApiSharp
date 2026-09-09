@@ -14,7 +14,15 @@ PACKAGES_DIR="${1:?Usage: eng/package-consumer-test.sh <packages-dir> <version>}
 VERSION="${2:?Usage: eng/package-consumer-test.sh <packages-dir> <version>}"
 PROJECT="tests/XApiSharp.PackageTests/XApiSharp.PackageTests.csproj"
 
-ABS_PACKAGES_DIR="$(cd "$PACKAGES_DIR" && pwd)"
+# On Windows, Git Bash's plain `pwd` returns a POSIX-style path (e.g. /d/a/XApiSharp/...) that
+# .NET's own path resolution does not understand the same way (it was observed to misparse it as
+# C:\d\a\XApiSharp\...) when embedded as a nuget.config source value - `pwd -W` gives the
+# Windows-style equivalent (D:/a/XApiSharp/...) instead. Real POSIX systems don't have `-W`.
+if [[ "${OS:-}" == "Windows_NT" ]]; then
+  ABS_PACKAGES_DIR="$(cd "$PACKAGES_DIR" && pwd -W)"
+else
+  ABS_PACKAGES_DIR="$(cd "$PACKAGES_DIR" && pwd)"
+fi
 
 # The repo's own NuGet.config maps every package pattern to nuget.org only (dependency-confusion
 # hardening) - a plain `--source` doesn't participate in that mapping and is silently ignored, so
