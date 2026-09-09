@@ -79,7 +79,7 @@ jobs:
       # consumer check, not a full rebuild.
       - uses: actions/download-artifact@v4
         with:
-          name: release-candidate-${{ inputs.version }}-ubuntu-latest
+          name: release-candidate-${{ inputs.version }}-ubuntu-latest-packages
           path: artifacts/packages
 
       - name: Install and basic-use smoke check
