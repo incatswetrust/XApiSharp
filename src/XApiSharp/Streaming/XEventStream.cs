@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using XApiSharp.Diagnostics;
 using XApiSharp.Errors;
 
 namespace XApiSharp.Streaming;
@@ -46,14 +47,24 @@ internal static class XEventStream
     /// need a real sleep.</param>
     /// <param name="cancellationToken">Observed before each connect and each line read; disposing
     /// the enumerator (including via an early <c>break</c>) closes the in-flight connection.</param>
+    /// <param name="routeTag">A fixed, literal identifier for this stream operation (never
+    /// interpolated with caller data), used only as a diagnostics metric/event tag (spec 18.2).
+    /// <see langword="null"/> omits the tag.</param>
     public static async IAsyncEnumerable<TBody> EnumerateAsync<TBody>(
         Func<CancellationToken, Task<HttpResponseMessage>> connect,
         XStreamOptions<TBody>? options,
         TimeProvider timeProvider,
-        [EnumeratorCancellation] CancellationToken cancellationToken)
+        [EnumeratorCancellation] CancellationToken cancellationToken,
+        string? routeTag = null)
     {
         ArgumentNullException.ThrowIfNull(connect);
         options ??= new XStreamOptions<TBody>();
+
+        // A fixed, literal path (never interpolated with caller data - stream endpoints take no
+        // path parameters), so it's always safe as a metric tag as-is (spec 18.2).
+        var tags = routeTag is null
+            ? []
+            : new KeyValuePair<string, object?>[] { new("url.template", routeTag) };
 
         var dedupSeen = options.DeduplicationKey is null ? null : new HashSet<string>(StringComparer.Ordinal);
         var dedupOrder = options.DeduplicationKey is null ? null : new Queue<string>();
@@ -76,106 +87,117 @@ internal static class XEventStream
             }
 
             Exception? connectionLostCause = null;
-            using (response)
+            XDiagnostics.ActiveStreamConnections.Add(1, tags);
+            XDiagnostics.AddEvent("xapisharp.stream.connect", tags);
+            try
             {
-                var rawStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-                var reader = new XStreamLineReader(rawStream, options.MaxMessageSizeBytes);
-                await using (reader.ConfigureAwait(false))
+                using (response)
                 {
-                    while (true)
+                    var rawStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                    var reader = new XStreamLineReader(rawStream, options.MaxMessageSizeBytes);
+                    await using (reader.ConfigureAwait(false))
                     {
-                        string? line;
-                        CancellationTokenSource? idleTimeoutCts = null;
-                        CancellationTokenSource? linkedCts = null;
-                        var timedOutOrLost = false;
-                        try
+                        while (true)
                         {
-                            var readToken = cancellationToken;
-                            if (options.IdleTimeout is { } idleTimeout)
+                            string? line;
+                            CancellationTokenSource? idleTimeoutCts = null;
+                            CancellationTokenSource? linkedCts = null;
+                            var timedOutOrLost = false;
+                            try
                             {
-                                idleTimeoutCts = new CancellationTokenSource(idleTimeout, timeProvider);
-                                linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, idleTimeoutCts.Token);
-                                readToken = linkedCts.Token;
+                                var readToken = cancellationToken;
+                                if (options.IdleTimeout is { } idleTimeout)
+                                {
+                                    idleTimeoutCts = new CancellationTokenSource(idleTimeout, timeProvider);
+                                    linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, idleTimeoutCts.Token);
+                                    readToken = linkedCts.Token;
+                                }
+
+                                line = await reader.ReadLineAsync(readToken).ConfigureAwait(false);
+                            }
+                            catch (OperationCanceledException) when (idleTimeoutCts is { IsCancellationRequested: true } && !cancellationToken.IsCancellationRequested)
+                            {
+                                // STREAM-06/08: distinguishable from a caller-driven cancellation (that
+                                // one is never caught here - it propagates as OperationCanceledException)
+                                // and, like any other connection-loss shape, eligible for reconnect
+                                // below rather than always ending the enumeration outright.
+                                connectionLostCause = new XStreamIdleTimeoutException(
+                                    $"No data was received from the stream within the configured idle timeout of {options.IdleTimeout}.");
+                                timedOutOrLost = true;
+                                line = null;
+                            }
+                            catch (IOException ex)
+                            {
+                                connectionLostCause = new XStreamConnectionLostException("The stream connection was lost while reading.", ex);
+                                timedOutOrLost = true;
+                                line = null;
+                            }
+                            catch (HttpRequestException ex)
+                            {
+                                connectionLostCause = new XStreamConnectionLostException("The stream connection was lost while reading.", ex);
+                                timedOutOrLost = true;
+                                line = null;
+                            }
+                            finally
+                            {
+                                linkedCts?.Dispose();
+                                idleTimeoutCts?.Dispose();
                             }
 
-                            line = await reader.ReadLineAsync(readToken).ConfigureAwait(false);
-                        }
-                        catch (OperationCanceledException) when (idleTimeoutCts is { IsCancellationRequested: true } && !cancellationToken.IsCancellationRequested)
-                        {
-                            // STREAM-06/08: distinguishable from a caller-driven cancellation (that
-                            // one is never caught here - it propagates as OperationCanceledException)
-                            // and, like any other connection-loss shape, eligible for reconnect
-                            // below rather than always ending the enumeration outright.
-                            connectionLostCause = new XStreamIdleTimeoutException(
-                                $"No data was received from the stream within the configured idle timeout of {options.IdleTimeout}.");
-                            timedOutOrLost = true;
-                            line = null;
-                        }
-                        catch (IOException ex)
-                        {
-                            connectionLostCause = new XStreamConnectionLostException("The stream connection was lost while reading.", ex);
-                            timedOutOrLost = true;
-                            line = null;
-                        }
-                        catch (HttpRequestException ex)
-                        {
-                            connectionLostCause = new XStreamConnectionLostException("The stream connection was lost while reading.", ex);
-                            timedOutOrLost = true;
-                            line = null;
-                        }
-                        finally
-                        {
-                            linkedCts?.Dispose();
-                            idleTimeoutCts?.Dispose();
-                        }
-
-                        if (timedOutOrLost)
-                        {
-                            break;
-                        }
-
-                        if (line is null)
-                        {
-                            connectionLostCause = new XStreamConnectionLostException("The server closed the stream connection.");
-                            break;
-                        }
-
-                        if (line.Length == 0 || IsWhitespaceOnly(line))
-                        {
-                            // STREAM-01: a blank line is a heartbeat/keep-alive, not an event -
-                            // still counts as activity for the idle timeout above, just no body
-                            // to deserialize or yield.
-                            continue;
-                        }
-
-                        TBody body;
-                        try
-                        {
-                            body = JsonSerializer.Deserialize<TBody>(line, JsonOptions)!;
-                        }
-                        catch (JsonException ex)
-                        {
-                            throw new XStreamMalformedMessageException("A stream message was not valid JSON for the expected contract.", ex);
-                        }
-
-                        if (dedupSeen is not null)
-                        {
-                            var key = options.DeduplicationKey!(body);
-                            if (!dedupSeen.Add(key))
+                            if (timedOutOrLost)
                             {
+                                break;
+                            }
+
+                            if (line is null)
+                            {
+                                connectionLostCause = new XStreamConnectionLostException("The server closed the stream connection.");
+                                break;
+                            }
+
+                            if (line.Length == 0 || IsWhitespaceOnly(line))
+                            {
+                                // STREAM-01: a blank line is a heartbeat/keep-alive, not an event -
+                                // still counts as activity for the idle timeout above, just no body
+                                // to deserialize or yield.
                                 continue;
                             }
 
-                            dedupOrder!.Enqueue(key);
-                            if (dedupOrder.Count > options.DeduplicationWindowSize)
+                            TBody body;
+                            try
                             {
-                                dedupSeen.Remove(dedupOrder.Dequeue());
+                                body = JsonSerializer.Deserialize<TBody>(line, JsonOptions)!;
                             }
-                        }
+                            catch (JsonException ex)
+                            {
+                                throw new XStreamMalformedMessageException("A stream message was not valid JSON for the expected contract.", ex);
+                            }
 
-                        yield return body;
+                            if (dedupSeen is not null)
+                            {
+                                var key = options.DeduplicationKey!(body);
+                                if (!dedupSeen.Add(key))
+                                {
+                                    XDiagnostics.DroppedStreamEvents.Add(1, tags);
+                                    continue;
+                                }
+
+                                dedupOrder!.Enqueue(key);
+                                if (dedupOrder.Count > options.DeduplicationWindowSize)
+                                {
+                                    dedupSeen.Remove(dedupOrder.Dequeue());
+                                }
+                            }
+
+                            yield return body;
+                        }
                     }
                 }
+            }
+            finally
+            {
+                XDiagnostics.ActiveStreamConnections.Add(-1, tags);
+                XDiagnostics.AddEvent("xapisharp.stream.disconnect", tags);
             }
 
             if (!ShouldReconnect(connectionLostCause!, options.Reconnect, attempt))

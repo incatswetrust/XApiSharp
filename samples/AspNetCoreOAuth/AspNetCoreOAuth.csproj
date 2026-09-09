@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>XApiSharp.Samples.AspNetCoreOAuth</RootNamespace>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\XApiSharp\XApiSharp.csproj" />
+    <ProjectReference Include="..\..\src\XApiSharp.Extensions.DependencyInjection\XApiSharp.Extensions.DependencyInjection.csproj" />
+  </ItemGroup>
+
+</Project>

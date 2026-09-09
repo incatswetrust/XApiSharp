@@ -71,8 +71,9 @@ update each operation's `liveValidation` entry with the actual outcome (`passed`
 
 **SDK version:** `0.1.0-alpha.1` (`Directory.Build.props`) &nbsp;·&nbsp; **Measured:** 2026-09-09
 &nbsp;·&nbsp; **Tooling:** `coverlet.collector` 6.0.0, `dotnet test --collect:"XPlat Code Coverage"`,
-one run each for `XApiSharp.UnitTests` (146 tests) and `XApiSharp.ContractTests` (219 tests),
-Cobertura output merged by taking the max hit count per source line/branch across both runs.
+one run each for `XApiSharp.UnitTests` (154 tests) and `XApiSharp.ContractTests` (220 tests),
+Cobertura output merged by taking the max coverage per source line/branch condition across both
+runs (re-measured after E7's diagnostics addition - see `Diagnostics/XDiagnostics.cs` below).
 
 Spec 19.5 sets the 80% target for "hand-written core", and separately says generated-shaped code
 is judged by operation coverage, not a branch percentage - already 100% (see above). Nothing in
@@ -87,34 +88,43 @@ helpers:
 
 | File | Branch coverage |
 | --- | --- |
-| `Transport/RequestExecutor.cs` | 87.3% (110/126) |
+| `Transport/RequestExecutor.cs` | 91.5% (119/130) |
 | `Transport/QueryStringBuilder.cs` | 100% (18/18) |
 | `Transport/MaxLengthStream.cs` | 100% (4/4) |
-| `Pagination/XPaginator.cs` | 86.1% (31/36) |
-| `Streaming/XEventStream.cs` | 81.5% (44/54) |
+| `Pagination/XPaginator.cs` | 89.5% (34/38) |
+| `Streaming/XEventStream.cs` | 83.3% (50/60) |
 | `Streaming/XStreamLineReader.cs` | 100% (16/16) |
+| `Diagnostics/XDiagnostics.cs` | 81.8% (18/22) |
 | `Authentication/BearerTokenAuthenticationProvider.cs` | 100% (trivial, no branches) |
 | `Authentication/XAppOnlyAuthenticationProvider.cs` | 86.7% (26/30) |
 | `Authentication/XOAuth1AuthenticationProvider.cs` | 91.7% (44/48) |
-| `Authentication/XOAuth2Client.cs` | 74.1% (43/58) |
-| `Authentication/XOAuth2UserAuthenticationProvider.cs` | 73.1% (19/26) |
+| `Authentication/XOAuth2Client.cs` | 79.3% (46/58) |
+| `Authentication/XOAuth2UserAuthenticationProvider.cs` | 76.9% (20/26) |
 | `Authentication/XInMemoryOAuth2TokenStore.cs` | 100% (4/4) |
-| `Media/MediaClient.cs` | 73.7% (56/76) |
+| `Media/MediaClient.cs` | 75.6% (59/78) |
 | `Media/ProgressReportingStream.cs` | 75.0% (3/4) |
 | `Compliance/ComplianceClient.cs` | 78.6% (11/14) |
-| `Webhooks/XWebhookSignatureVerifier.cs` | 83.3% (5/6) |
+| `Webhooks/XWebhookSignatureVerifier.cs` | 100% (6/6) |
 | `Webhooks/XWebhookChallengeResponder.cs` | 100% (trivial, no branches) |
-| **Total (core)** | **83.5% (434/520)** |
+| **Total (core)** | **86.0% (478/556)** |
 
-Above the 80% gate, with no single file below 73% - the remaining gaps (`XOAuth2Client`/
+`Diagnostics/XDiagnostics.cs` (new in E7 - spec 18.2's ActivitySource/Meter instrumentation) is
+included here on the same "hand-written, non-mechanical" basis as the rest of this table - it
+carries real conditional logic (the route-template redaction heuristic, the no-listener fast
+path), unlike the mechanically-derived per-operation client methods.
+
+Above the 80% gate, with no single file below 75% - the remaining gaps (`XOAuth2Client`/
 `XOAuth2UserAuthenticationProvider`'s less-common refresh-races, `MediaClient`'s upload
-error/cancellation edge cases) are real but smaller than what was already closed this pass
-(`RequestExecutor` 68.3% → 87.3%, `XAppOnlyAuthenticationProvider` 56.7% → 86.7%, by adding direct
+error/cancellation edge cases) are real but smaller than what was already closed in E6 (from a
+`RequestExecutor` 68.3% baseline, `XAppOnlyAuthenticationProvider` 56.7% baseline, by adding direct
 tests for previously-unexercised paths: thrown `HttpRequestException`, the oversized-response
 guard, 403/`XAccessDeniedException`, a non-JSON error body, `Retry-After` as an HTTP date, the
 rate-limit-reset fallback, exhausted-retries-on-429, `OpenStreamAsync`'s own failure/refresh/
-null-query paths, and `XAppOnlyAuthenticationProvider.RefreshAsync`'s revoke-then-fetch path) -
-no branches were excluded to inflate this number (spec 19.5: "no excluding hard branches").
+null-query paths, and `XAppOnlyAuthenticationProvider.RefreshAsync`'s revoke-then-fetch path), plus
+E7's diagnostics-focused tests, which incidentally raised `RequestExecutor`/`XEventStream`/
+`XPaginator` further by exercising more of the retry/reconnect/refresh branches those tests
+observe events on - no branches were excluded to inflate this number (spec 19.5: "no excluding
+hard branches").
 
 To reproduce: `dotnet test tests/XApiSharp.UnitTests/XApiSharp.UnitTests.csproj --collect:"XPlat Code Coverage" --results-directory <dir>`
 (same for `XApiSharp.ContractTests`), then merge the two `coverage.cobertura.xml` outputs by source

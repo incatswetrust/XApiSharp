@@ -1,6 +1,7 @@
 # ADR 0003: Public API and Error Model
 
-**Status:** decided (stage E0), pending validation once real endpoints/tests land in E2–E3.
+**Status:** decided (stage E0), validated - all 190 in-scope operations (E2–E6) were built against
+this shape without needing to revisit it.
 
 ## Problem
 
