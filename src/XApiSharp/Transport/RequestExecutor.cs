@@ -59,7 +59,7 @@ internal sealed class RequestExecutor
     /// <param name="cancellationToken">Caller cancellation, layered under the operation/attempt
     /// deadlines (spec HTTP-06/07).</param>
     public Task<XResponse<TBody>> SendAsync<TBody>(HttpMethod method, string relativePath, object? jsonBody, IReadOnlyList<(string Name, string? Value)>? queryParameters, CancellationToken cancellationToken) =>
-        ExecuteAsync(method, relativePath, jsonBody, binaryBody: null, queryParameters, ReadJsonBodyAsync<TBody>, cancellationToken);
+        ExecuteAsync(method, relativePath, jsonBody, binaryBody: null, contentFactory: null, queryParameters, ReadJsonBodyAsync<TBody>, cancellationToken);
 
     /// <summary>
     /// Same auth/retry/error-mapping path as <see cref="SendAsync{TBody}(HttpMethod, string, object?, IReadOnlyList{ValueTuple{string, string?}}?, CancellationToken)"/>,
@@ -70,7 +70,7 @@ internal sealed class RequestExecutor
     /// this simple download.
     /// </summary>
     public Task<XResponse<byte[]>> SendForBytesAsync(HttpMethod method, string relativePath, CancellationToken cancellationToken) =>
-        ExecuteAsync<byte[]>(method, relativePath, jsonBody: null, binaryBody: null, queryParameters: null, ReadBytesBodyAsync, cancellationToken);
+        ExecuteAsync<byte[]>(method, relativePath, jsonBody: null, binaryBody: null, contentFactory: null, queryParameters: null, ReadBytesBodyAsync, cancellationToken);
 
     /// <param name="method">HTTP method.</param>
     /// <param name="relativePath">Path relative to <see cref="XClientOptions.BaseUrl"/>.</param>
@@ -79,7 +79,7 @@ internal sealed class RequestExecutor
     /// <param name="cancellationToken">Caller cancellation, layered under the operation/attempt
     /// deadlines (spec HTTP-06/07).</param>
     public Task<XResponse<byte[]>> SendForBytesAsync(HttpMethod method, string relativePath, IReadOnlyList<(string Name, string? Value)>? queryParameters, CancellationToken cancellationToken) =>
-        ExecuteAsync<byte[]>(method, relativePath, jsonBody: null, binaryBody: null, queryParameters, ReadBytesBodyAsync, cancellationToken);
+        ExecuteAsync<byte[]>(method, relativePath, jsonBody: null, binaryBody: null, contentFactory: null, queryParameters, ReadBytesBodyAsync, cancellationToken);
 
     /// <summary>
     /// Same as <see cref="SendAsync{TBody}(HttpMethod, string, object?, IReadOnlyList{ValueTuple{string, string?}}?, CancellationToken)"/>
@@ -91,7 +91,24 @@ internal sealed class RequestExecutor
     {
         ArgumentNullException.ThrowIfNull(binaryBody);
 
-        return ExecuteAsync(method, relativePath, jsonBody: null, binaryBody, queryParameters, ReadJsonBodyAsync<TBody>, cancellationToken);
+        return ExecuteAsync(method, relativePath, jsonBody: null, binaryBody, contentFactory: null, queryParameters, ReadJsonBodyAsync<TBody>, cancellationToken);
+    }
+
+    /// <summary>
+    /// Same core path again, but for a caller-built <see cref="HttpContent"/> (media upload's
+    /// <c>multipart/form-data</c> bodies) - <paramref name="contentFactory"/> is invoked fresh on
+    /// every attempt (HTTP-03), same reasoning as the JSON/binary body overloads elsewhere:
+    /// content that already made one attempt can't be resent as-is. Callers that build
+    /// content around a non-seekable <see cref="Stream"/> should only pass a factory here when
+    /// they can either tolerate a single retry consuming the stream (i.e. accept no retry after
+    /// the first byte is sent) or the factory captures already-buffered bytes (e.g. one bounded
+    /// chunked-upload segment) rather than the live stream itself.
+    /// </summary>
+    public Task<XResponse<TBody>> SendMultipartAsync<TBody>(HttpMethod method, string relativePath, Func<HttpContent> contentFactory, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(contentFactory);
+
+        return ExecuteAsync<TBody>(method, relativePath, jsonBody: null, binaryBody: null, contentFactory, queryParameters: null, ReadJsonBodyAsync<TBody>, cancellationToken);
     }
 
     /// <summary>
@@ -104,6 +121,7 @@ internal sealed class RequestExecutor
         string relativePath,
         object? jsonBody,
         byte[]? binaryBody,
+        Func<HttpContent>? contentFactory,
         IReadOnlyList<(string Name, string? Value)>? queryParameters,
         Func<HttpResponseMessage, IReadOnlyDictionary<string, IReadOnlyList<string>>, XRateLimitInfo?, CancellationToken, CancellationToken, Task<XResponse<TBody>>> readBody,
         CancellationToken cancellationToken)
@@ -139,6 +157,10 @@ internal sealed class RequestExecutor
             {
                 request.Content = new ByteArrayContent(binaryBody);
                 request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+            }
+            else if (contentFactory is not null)
+            {
+                request.Content = contentFactory();
             }
 
             await _authenticationProvider.PrepareRequestAsync(request, operationCts.Token).ConfigureAwait(false);

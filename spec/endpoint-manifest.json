@@ -4908,9 +4908,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Media.UploadAsync",
+      "requestType": "XApiSharp.Media.UploadMediaRequest",
+      "responseType": "XApiSharp.Media.UploadMediaResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -4919,8 +4919,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "MediaUploadContractTests.UploadAsync_sends_media_and_category_as_multipart_parts"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -5008,9 +5010,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Media.AppendUploadAsync",
+      "requestType": "XApiSharp.Media.AppendMediaUploadRequest",
+      "responseType": "XApiSharp.Media.AppendMediaUploadResponse",
       "flags": {
         "pagination": false,
         "streaming": false,
@@ -5019,8 +5021,11 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "MediaUploadContractTests.AppendUploadAsync_substitutes_id_and_sends_segment_bytes_and_index",
+        "MediaUploadContractTests.AppendUploadAsync_rejects_segment_index_out_of_range"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,

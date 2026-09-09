@@ -1,22 +1,22 @@
 using System.Globalization;
+using System.Net.Http.Headers;
 using XApiSharp.Common;
+using XApiSharp.Errors;
 using XApiSharp.Transport;
 
 namespace XApiSharp.Media;
 
-/// <summary>
-/// Typed methods for the Media family (11 operations per the registry, spec section 15). This
-/// covers the 9 plain-JSON operations; the 2 binary-body operations (direct upload, chunked
-/// append) and the high-level <c>Stream → media ID</c> facade land in a follow-up commit that
-/// also adds multipart/form-data transport support.
-/// </summary>
+/// <summary>Typed methods for the Media family (11 operations per the registry, spec section 15),
+/// including the chunked-upload sequence and the high-level <c>Stream → media ID</c> facade.</summary>
 public sealed class MediaClient
 {
     private readonly RequestExecutor _executor;
+    private readonly TimeProvider _timeProvider;
 
-    internal MediaClient(RequestExecutor executor)
+    internal MediaClient(RequestExecutor executor, TimeProvider timeProvider)
     {
         _executor = executor;
+        _timeProvider = timeProvider;
     }
 
     /// <summary>
@@ -195,5 +195,217 @@ public sealed class MediaClient
             HttpMethod.Post,
             $"2/media/upload/{Uri.EscapeDataString(request.Id)}/finalize",
             cancellationToken);
+    }
+
+    /// <summary>
+    /// <c>POST /2/media/upload</c> - direct, non-chunked upload (one HTTP call, the whole asset).
+    /// Requires OAuth 2.0 <c>media.write</c> or OAuth 1.0a. See <see cref="UploadMediaRequest"/>
+    /// for why this differs from the chunked sequence.
+    /// </summary>
+    public Task<XResponse<UploadMediaResponse>> UploadAsync(UploadMediaRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.Media);
+
+        return _executor.SendMultipartAsync<UploadMediaResponse>(
+            HttpMethod.Post,
+            "2/media/upload",
+            () =>
+            {
+                var content = new MultipartFormDataContent();
+                var mediaContent = new StreamContent(new ProgressReportingStream(request.Media, request.Progress));
+                mediaContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                content.Add(mediaContent, "media", "media");
+                content.Add(new StringContent(request.MediaCategory.ToApiValue()), "media_category");
+                if (request.AdditionalOwners is { Count: > 0 })
+                {
+                    content.Add(new StringContent(QueryStringBuilder.JoinCommaSeparated(request.AdditionalOwners)!), "additional_owners");
+                }
+
+                return content;
+            },
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// <c>POST /2/media/upload/{id}/append</c> - append one bounded, already-buffered segment
+    /// (spec section 15.1, step 3; MEDIA-05: the caller can retry this call with the exact same
+    /// bytes since <see cref="AppendMediaUploadRequest.Segment"/> is a buffered <c>byte[]</c>).
+    /// Requires OAuth 2.0 <c>media.write</c> or OAuth 1.0a.
+    /// </summary>
+    public Task<XResponse<AppendMediaUploadResponse>> AppendUploadAsync(AppendMediaUploadRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.Id);
+        ArgumentNullException.ThrowIfNull(request.Segment);
+        if (request.SegmentIndex is < 0 or > 999)
+        {
+            throw new ArgumentOutOfRangeException(nameof(request), request.SegmentIndex, "SegmentIndex must be 0-999.");
+        }
+
+        return _executor.SendMultipartAsync<AppendMediaUploadResponse>(
+            HttpMethod.Post,
+            $"2/media/upload/{Uri.EscapeDataString(request.Id)}/append",
+            () =>
+            {
+                var content = new MultipartFormDataContent();
+                var mediaContent = new ByteArrayContent(request.Segment);
+                mediaContent.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
+                content.Add(mediaContent, "media", "segment");
+                content.Add(new StringContent(request.SegmentIndex.ToString(CultureInfo.InvariantCulture)), "segment_index");
+
+                return content;
+            },
+            cancellationToken);
+    }
+
+    /// <summary>
+    /// High-level "Stream → media ID" facade (spec section 15.1) driving initialize → append* →
+    /// finalize → wait-for-processing as one call, satisfying MEDIA-01 through MEDIA-12. On
+    /// failure partway through, throws <see cref="XMediaUploadException"/> carrying whatever
+    /// media ID/key/processing state is already known (MEDIA-09) - the SDK never invents a
+    /// cleanup/delete call of its own (MEDIA-11).
+    /// </summary>
+    public async Task<MediaUploadInfo> UploadFromStreamAsync(UploadFromStreamRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentNullException.ThrowIfNull(request.Media);
+        if (request.ChunkSizeBytes <= 0)
+        {
+            throw new ArgumentException("ChunkSizeBytes must be positive.", nameof(request));
+        }
+
+        // MEDIA-03: the known-length requirement is explained up front, not discovered as a late
+        // server error.
+        var totalBytes = request.TotalBytes ?? (request.Media.CanSeek
+            ? request.Media.Length
+            : throw new ArgumentException(
+                "TotalBytes must be supplied when Media is not seekable - the chunked-upload protocol needs the total size at initialize time, before any bytes are read.",
+                nameof(request)));
+
+        var initializeResponse = await InitializeUploadAsync(
+            new InitializeMediaUploadRequest
+            {
+                MediaCategory = request.MediaCategory,
+                MediaType = request.MediaType,
+                TotalBytes = totalBytes,
+                AdditionalOwners = request.AdditionalOwners,
+                Shared = request.Shared,
+            },
+            cancellationToken).ConfigureAwait(false);
+
+        var mediaId = initializeResponse.Body?.Data?.Id
+            ?? throw new XMediaUploadException("Initialize media upload returned no media id.", mediaId: null, mediaKey: null, lastKnownState: null);
+        var mediaKey = initializeResponse.Body?.Data?.MediaKey;
+
+        try
+        {
+            // MEDIA-01: only ever one bounded segment resident in memory at a time, never the
+            // whole asset.
+            var buffer = new byte[request.ChunkSizeBytes];
+            var segmentIndex = 0;
+            long bytesSent = 0;
+
+            while (true)
+            {
+                var segmentLength = await ReadFullSegmentAsync(request.Media, buffer, cancellationToken).ConfigureAwait(false);
+                if (segmentLength == 0)
+                {
+                    break;
+                }
+
+                var segment = segmentLength == buffer.Length ? buffer : buffer[..segmentLength];
+
+                await AppendUploadAsync(
+                    new AppendMediaUploadRequest { Id = mediaId, SegmentIndex = segmentIndex, Segment = segment },
+                    cancellationToken).ConfigureAwait(false);
+
+                bytesSent += segmentLength;
+                // MEDIA-06: cumulative, not per-segment; a throwing callback propagates.
+                request.Progress?.Report(bytesSent);
+
+                if (segmentLength < buffer.Length)
+                {
+                    break;
+                }
+
+                segmentIndex++;
+            }
+
+            var finalizeResponse = await FinalizeUploadAsync(new FinalizeMediaUploadRequest { Id = mediaId }, cancellationToken).ConfigureAwait(false);
+            var info = finalizeResponse.Body?.Data
+                ?? throw new XMediaUploadException("Finalize media upload returned no data.", mediaId, mediaKey, lastKnownState: null);
+
+            if (info.ProcessingInfo is null)
+            {
+                return info;
+            }
+
+            return await WaitForProcessingAsync(mediaId, mediaKey, info, request.ProcessingTimeout, cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is not XMediaUploadException)
+        {
+            throw new XMediaUploadException($"Media upload failed: {ex.Message}", mediaId, mediaKey, lastKnownState: null, innerException: ex);
+        }
+    }
+
+    /// <summary>
+    /// MEDIA-08: a bounded deadline for the processing-status poll loop, driven by
+    /// <see cref="_timeProvider"/> so tests never need a real sleep, honoring the server's own
+    /// <c>check_after_secs</c> hint for the wait between polls.
+    /// </summary>
+    private async Task<MediaUploadInfo> WaitForProcessingAsync(string mediaId, string? mediaKey, MediaUploadInfo initialInfo, TimeSpan processingTimeout, CancellationToken cancellationToken)
+    {
+        var info = initialInfo;
+        var deadline = _timeProvider.GetUtcNow() + processingTimeout;
+
+        while (true)
+        {
+            var state = info.ProcessingInfo?.State;
+            if (state is "succeeded" or null)
+            {
+                return info;
+            }
+
+            if (state == "failed")
+            {
+                throw new XMediaUploadException("Media processing failed.", mediaId, mediaKey, lastKnownState: state);
+            }
+
+            var checkAfter = TimeSpan.FromSeconds(Math.Max(1, info.ProcessingInfo?.CheckAfterSecs ?? 1));
+            if (_timeProvider.GetUtcNow() + checkAfter > deadline)
+            {
+                throw new XMediaUploadException("Timed out waiting for media processing to finish.", mediaId, mediaKey, lastKnownState: state);
+            }
+
+            using (var delayCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+            {
+                await Task.Delay(checkAfter, _timeProvider, delayCts.Token).ConfigureAwait(false);
+            }
+
+            var statusResponse = await GetUploadStatusAsync(new GetMediaUploadStatusRequest { MediaId = mediaId }, cancellationToken).ConfigureAwait(false);
+            info = statusResponse.Body?.Data
+                ?? throw new XMediaUploadException("Get media upload status returned no data.", mediaId, mediaKey, lastKnownState: state);
+        }
+    }
+
+    /// <summary>Reads until <paramref name="buffer"/> is full or the stream ends (a single
+    /// <c>ReadAsync</c> call is not guaranteed to fill the buffer) - MEDIA-05 needs each segment
+    /// sent to be exactly the bytes it claims, not a short read.</summary>
+    private static async Task<int> ReadFullSegmentAsync(Stream stream, byte[] buffer, CancellationToken cancellationToken)
+    {
+        var totalRead = 0;
+        while (totalRead < buffer.Length)
+        {
+            var read = await stream.ReadAsync(buffer.AsMemory(totalRead, buffer.Length - totalRead), cancellationToken).ConfigureAwait(false);
+            if (read == 0)
+            {
+                break;
+            }
+
+            totalRead += read;
+        }
+
+        return totalRead;
     }
 }

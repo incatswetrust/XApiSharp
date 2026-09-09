@@ -63,7 +63,7 @@ public sealed class XApiClient
         Connections = new ConnectionsClient(executor);
         Bots = new BotsClient(executor);
         Broadcasts = new BroadcastsClient(executor);
-        Media = new MediaClient(executor);
+        Media = new MediaClient(executor, resolvedTimeProvider);
     }
 
     public UsersClient Users { get; }
