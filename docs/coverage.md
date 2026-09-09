@@ -74,11 +74,12 @@ update each operation's `liveValidation` entry with the actual outcome (`passed`
 
 ## Branch coverage (spec section 19.5)
 
-**SDK version:** `0.1.0-alpha.1` (`Directory.Build.props`) &nbsp;·&nbsp; **Measured:** 2026-09-09
+**SDK version:** `1.0.0-beta.1` (`Directory.Build.props`) &nbsp;·&nbsp; **Measured:** 2026-09-09
 &nbsp;·&nbsp; **Tooling:** `coverlet.collector` 6.0.0, `dotnet test --collect:"XPlat Code Coverage"`,
-one run each for `XApiSharp.UnitTests` (154 tests) and `XApiSharp.ContractTests` (220 tests),
+one run each for `XApiSharp.UnitTests` (165 tests) and `XApiSharp.ContractTests` (220 tests),
 Cobertura output merged by taking the max coverage per source line/branch condition across both
-runs (re-measured after E7's diagnostics addition - see `Diagnostics/XDiagnostics.cs` below).
+runs (re-measured after the RATE-03/04/05 persistent rate-limit state follow-up - see
+`Transport/XRateLimitContextStore.cs`/`XRateLimitStateRegistry.cs` below).
 
 Spec 19.5 sets the 80% target for "hand-written core", and separately says generated-shaped code
 is judged by operation coverage, not a branch percentage - already 100% (see above). Nothing in
@@ -93,13 +94,15 @@ helpers:
 
 | File | Branch coverage |
 | --- | --- |
-| `Transport/RequestExecutor.cs` | 91.5% (119/130) |
+| `Transport/RequestExecutor.cs` | 92.4% (133/144) |
 | `Transport/QueryStringBuilder.cs` | 100% (18/18) |
 | `Transport/MaxLengthStream.cs` | 100% (4/4) |
 | `Pagination/XPaginator.cs` | 89.5% (34/38) |
 | `Streaming/XEventStream.cs` | 83.3% (50/60) |
 | `Streaming/XStreamLineReader.cs` | 100% (16/16) |
 | `Diagnostics/XDiagnostics.cs` | 81.8% (18/22) |
+| `Transport/XRateLimitContextStore.cs` | 100% (4/4) |
+| `Transport/XRateLimitStateRegistry.cs` | 100% (trivial, no branches) |
 | `Authentication/BearerTokenAuthenticationProvider.cs` | 100% (trivial, no branches) |
 | `Authentication/XAppOnlyAuthenticationProvider.cs` | 86.7% (26/30) |
 | `Authentication/XOAuth1AuthenticationProvider.cs` | 91.7% (44/48) |
@@ -111,12 +114,14 @@ helpers:
 | `Compliance/ComplianceClient.cs` | 78.6% (11/14) |
 | `Webhooks/XWebhookSignatureVerifier.cs` | 100% (6/6) |
 | `Webhooks/XWebhookChallengeResponder.cs` | 100% (trivial, no branches) |
-| **Total (core)** | **86.0% (478/556)** |
+| **Total (core)** | **86.4% (496/574)** |
 
-`Diagnostics/XDiagnostics.cs` (new in E7 - spec 18.2's ActivitySource/Meter instrumentation) is
-included here on the same "hand-written, non-mechanical" basis as the rest of this table - it
-carries real conditional logic (the route-template redaction heuristic, the no-listener fast
-path), unlike the mechanically-derived per-operation client methods.
+`Diagnostics/XDiagnostics.cs` (E7 - spec 18.2's ActivitySource/Meter instrumentation) and
+`Transport/XRateLimitContextStore.cs`/`XRateLimitStateRegistry.cs` (the RATE-03/04/05 follow-up:
+persistent, per-auth-context rate-limit state - see `Transport/RequestExecutor.cs`'s doc comment
+and issue #15) are included here on the same "hand-written, non-mechanical" basis as the rest of
+this table - each carries real conditional logic, unlike the mechanically-derived per-operation
+client methods.
 
 Above the 80% gate, with no single file below 75% - the remaining gaps (`XOAuth2Client`/
 `XOAuth2UserAuthenticationProvider`'s less-common refresh-races, `MediaClient`'s upload

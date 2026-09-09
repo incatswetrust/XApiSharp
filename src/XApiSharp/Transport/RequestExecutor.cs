@@ -13,9 +13,9 @@ namespace XApiSharp.Transport;
 /// The single shared request path every typed endpoint method goes through - auth, sending,
 /// error mapping, retry, and deserialization live here once, not duplicated per endpoint (spec
 /// section 6.1: "generating a separate, independent retry or auth implementation per endpoint is
-/// not allowed"). Rate-limit *state persistence* across calls (RATE-03..05) lands with the
-/// per-context work in a later E3 commit; this covers per-call retry/backoff (spec section 13.2)
-/// and header-driven 429 waiting (RATE-01/02/06).
+/// not allowed"). Covers per-call retry/backoff (spec section 13.2), header-driven 429 waiting
+/// (RATE-01/02/06), and cross-call rate-limit state persistence scoped by endpoint and auth
+/// context (RATE-03/04/05 - see <see cref="XRateLimitContextStore"/>).
 /// </summary>
 internal sealed class RequestExecutor
 {
@@ -27,6 +27,7 @@ internal sealed class RequestExecutor
     private readonly XClientOptions _options;
     private readonly TimeProvider _timeProvider;
     private readonly Random _jitterSource;
+    private readonly XRateLimitContextStore _rateLimitStore;
 
     public RequestExecutor(HttpClient httpClient, IXAuthenticationProvider authenticationProvider, XClientOptions options, TimeProvider timeProvider, Random jitterSource)
     {
@@ -35,6 +36,7 @@ internal sealed class RequestExecutor
         _options = options;
         _timeProvider = timeProvider;
         _jitterSource = jitterSource;
+        _rateLimitStore = XRateLimitStateRegistry.GetOrCreate(authenticationProvider);
     }
 
     public Task<XResponse<TBody>> SendAsync<TBody>(HttpMethod method, string relativePath, CancellationToken cancellationToken) =>
@@ -262,10 +264,28 @@ internal sealed class RequestExecutor
         var isRetryableMethod = Array.IndexOf(RetryableMethods, method) >= 0;
         var maxAttempts = 1 + _options.MaxRetries;
         var hasRefreshedForThisCall = false;
+        var rateLimitScopeKey = $"{method.Method} {XDiagnostics.ToRouteTemplate(relativePath)}";
 
         for (var attempt = 1; ; attempt++)
         {
             var isLastAttempt = attempt >= maxAttempts;
+
+            // RATE-03/04/05: consult state persisted from a *previous* call in this same
+            // (endpoint, auth context) scope before sending - a scope already known to be
+            // exhausted, with its reset still ahead, means this attempt would just burn a real
+            // (possibly billable) request for a guaranteed 429. Waiting here uses the same
+            // cancellable, operation-deadline-bounded helper as a reactive 429 wait (RATE-06);
+            // Remaining is only ever compared as "<= 0", never treated as exhausted when absent
+            // (RATE-02 - a missing header is unknown, not zero).
+            if (_rateLimitStore.TryGet(rateLimitScopeKey) is { Remaining: <= 0, Reset: { } knownReset })
+            {
+                var now = _timeProvider.GetUtcNow();
+                if (knownReset > now)
+                {
+                    XDiagnostics.AddEvent("xapisharp.rate_limit_wait", new("attempt", attempt), new("proactive", true));
+                    await DelayAsync(knownReset - now, operationCts.Token, cancellationToken).ConfigureAwait(false);
+                }
+            }
 
             // HTTP-03: a fresh HttpRequestMessage (and re-run auth prep) on every attempt - a
             // consumed request/refreshed token can't be resent as-is.
@@ -285,6 +305,11 @@ internal sealed class RequestExecutor
             }
 
             await _authenticationProvider.PrepareRequestAsync(request, operationCts.Token).ConfigureAwait(false);
+
+            // RATE-05: grabbed right before the send, not after the response comes back - this is
+            // what makes "which attempt started later" a well-defined, race-free ordering even
+            // when responses arrive out of order under concurrency.
+            var rateLimitSequence = _rateLimitStore.NextSequence();
 
             HttpResponseMessage response;
             using (var attemptTimeoutCts = new CancellationTokenSource(_options.AttemptTimeout, _timeProvider))
@@ -320,6 +345,13 @@ internal sealed class RequestExecutor
             {
                 var headers = ToHeaderDictionary(response);
                 var rateLimit = XRateLimitInfo.FromHeaders(response.Headers);
+
+                // RATE-02: a response that carried no rate-limit headers at all says nothing about
+                // this scope's quota - never overwrites what's already stored.
+                if (rateLimit is not null)
+                {
+                    _rateLimitStore.Record(rateLimitScopeKey, rateLimitSequence, rateLimit);
+                }
 
                 if (!response.IsSuccessStatusCode)
                 {
