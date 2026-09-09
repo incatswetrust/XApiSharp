@@ -10,8 +10,8 @@ namespace XApiSharp.Transport;
 /// <summary>
 /// The single shared request path every typed endpoint method goes through - auth, sending,
 /// error mapping, retry, and deserialization live here once, not duplicated per endpoint (spec
-/// section 6.1: "Нельзя генерировать отдельную независимую реализацию retry или авторизации для
-/// каждого endpoint"). Rate-limit *state persistence* across calls (RATE-03..05) lands with the
+/// section 6.1: "generating a separate, independent retry or auth implementation per endpoint is
+/// not allowed"). Rate-limit *state persistence* across calls (RATE-03..05) lands with the
 /// per-context work in a later E3 commit; this covers per-call retry/backoff (spec section 13.2)
 /// and header-driven 429 waiting (RATE-01/02/06).
 /// </summary>
@@ -59,18 +59,18 @@ internal sealed class RequestExecutor
     /// <param name="cancellationToken">Caller cancellation, layered under the operation/attempt
     /// deadlines (spec HTTP-06/07).</param>
     public Task<XResponse<TBody>> SendAsync<TBody>(HttpMethod method, string relativePath, object? jsonBody, IReadOnlyList<(string Name, string? Value)>? queryParameters, CancellationToken cancellationToken) =>
-        ExecuteAsync(method, relativePath, jsonBody, binaryBody: null, queryParameters, ReadJsonBodyAsync<TBody>, cancellationToken);
+        ExecuteAsync(method, relativePath, jsonBody, binaryBody: null, contentFactory: null, queryParameters, ReadJsonBodyAsync<TBody>, cancellationToken);
 
     /// <summary>
     /// Same auth/retry/error-mapping path as <see cref="SendAsync{TBody}(HttpMethod, string, object?, IReadOnlyList{ValueTuple{string, string?}}?, CancellationToken)"/>,
-    /// but for a binary response (e.g. DM media download) instead of JSON (spec section 9: "поддерживаются
-    /// пустые, бинарные и специфические ответы"). Buffered, not streamed back to the caller -
+    /// but for a binary response (e.g. DM media download) instead of JSON (spec section 9: "empty,
+    /// binary, and operation-specific responses are all supported"). Buffered, not streamed back to the caller -
     /// bounded by the same <see cref="XClientOptions.MaxResponseBufferSize"/> as every other
     /// response; genuinely large media transfer is the chunked-upload family's concern (E5), not
     /// this simple download.
     /// </summary>
     public Task<XResponse<byte[]>> SendForBytesAsync(HttpMethod method, string relativePath, CancellationToken cancellationToken) =>
-        ExecuteAsync<byte[]>(method, relativePath, jsonBody: null, binaryBody: null, queryParameters: null, ReadBytesBodyAsync, cancellationToken);
+        ExecuteAsync<byte[]>(method, relativePath, jsonBody: null, binaryBody: null, contentFactory: null, queryParameters: null, ReadBytesBodyAsync, cancellationToken);
 
     /// <param name="method">HTTP method.</param>
     /// <param name="relativePath">Path relative to <see cref="XClientOptions.BaseUrl"/>.</param>
@@ -79,7 +79,7 @@ internal sealed class RequestExecutor
     /// <param name="cancellationToken">Caller cancellation, layered under the operation/attempt
     /// deadlines (spec HTTP-06/07).</param>
     public Task<XResponse<byte[]>> SendForBytesAsync(HttpMethod method, string relativePath, IReadOnlyList<(string Name, string? Value)>? queryParameters, CancellationToken cancellationToken) =>
-        ExecuteAsync<byte[]>(method, relativePath, jsonBody: null, binaryBody: null, queryParameters, ReadBytesBodyAsync, cancellationToken);
+        ExecuteAsync<byte[]>(method, relativePath, jsonBody: null, binaryBody: null, contentFactory: null, queryParameters, ReadBytesBodyAsync, cancellationToken);
 
     /// <summary>
     /// Same as <see cref="SendAsync{TBody}(HttpMethod, string, object?, IReadOnlyList{ValueTuple{string, string?}}?, CancellationToken)"/>
@@ -91,7 +91,84 @@ internal sealed class RequestExecutor
     {
         ArgumentNullException.ThrowIfNull(binaryBody);
 
-        return ExecuteAsync(method, relativePath, jsonBody: null, binaryBody, queryParameters, ReadJsonBodyAsync<TBody>, cancellationToken);
+        return ExecuteAsync(method, relativePath, jsonBody: null, binaryBody, contentFactory: null, queryParameters, ReadJsonBodyAsync<TBody>, cancellationToken);
+    }
+
+    /// <summary>
+    /// Same core path again, but for a caller-built <see cref="HttpContent"/> (media upload's
+    /// <c>multipart/form-data</c> bodies) - <paramref name="contentFactory"/> is invoked fresh on
+    /// every attempt (HTTP-03), same reasoning as the JSON/binary body overloads elsewhere:
+    /// content that already made one attempt can't be resent as-is. Callers that build
+    /// content around a non-seekable <see cref="Stream"/> should only pass a factory here when
+    /// they can either tolerate a single retry consuming the stream (i.e. accept no retry after
+    /// the first byte is sent) or the factory captures already-buffered bytes (e.g. one bounded
+    /// chunked-upload segment) rather than the live stream itself.
+    /// </summary>
+    public Task<XResponse<TBody>> SendMultipartAsync<TBody>(HttpMethod method, string relativePath, Func<HttpContent> contentFactory, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(contentFactory);
+
+        return ExecuteAsync<TBody>(method, relativePath, jsonBody: null, binaryBody: null, contentFactory, queryParameters: null, ReadJsonBodyAsync<TBody>, cancellationToken);
+    }
+
+    /// <summary>
+    /// Opens a streaming connection (spec section 16) - auth prep and connect-time error mapping
+    /// reuse <see cref="BuildExceptionAsync"/>, the same mapping every other overload uses, so a
+    /// connect-time 401/403/429 comes back as the same typed exception a caller already knows how
+    /// to handle. Unlike <see cref="ExecuteAsync{TBody}"/> this does not layer an operation/attempt
+    /// timeout over the connection - a streaming connection is meant to live far longer than
+    /// <see cref="XClientOptions.OperationTimeout"/>, so its lifetime is governed by the caller's
+    /// own <paramref name="cancellationToken"/> and, above this method, whatever idle timeout the
+    /// streaming engine applies per read (STREAM-08) - not by the regular per-call deadlines. The
+    /// returned, still-open <see cref="HttpResponseMessage"/> is the caller's to dispose (STREAM-12:
+    /// ending enumeration closes the connection); no body-level retry applies past this point -
+    /// once the connection is open, a stream-specific reconnect policy (STREAM-07) takes over, not
+    /// this method being called in a loop.
+    /// </summary>
+    internal async Task<HttpResponseMessage> OpenStreamAsync(HttpMethod method, string relativePath, IReadOnlyList<(string Name, string? Value)>? queryParameters, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var fullPath = relativePath + (queryParameters is null ? null : QueryStringBuilder.Build(queryParameters));
+        var hasRefreshedForThisCall = false;
+
+        while (true)
+        {
+            using var request = new HttpRequestMessage(method, new Uri(_options.BaseUrl, fullPath));
+            await _authenticationProvider.PrepareRequestAsync(request, cancellationToken).ConfigureAwait(false);
+
+            HttpResponseMessage response;
+            try
+            {
+                response = await _httpClient
+                    .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new XTransportException("Streaming connection failed at the transport level.", ex);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == HttpStatusCode.Unauthorized
+                    && !hasRefreshedForThisCall
+                    && _authenticationProvider is IXRefreshableAuthenticationProvider refreshable)
+                {
+                    hasRefreshedForThisCall = true;
+                    response.Dispose();
+                    await refreshable.ForceRefreshAsync(cancellationToken).ConfigureAwait(false);
+                    continue;
+                }
+
+                using (response)
+                {
+                    throw await BuildExceptionAsync(response, cancellationToken, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return response;
+        }
     }
 
     /// <summary>
@@ -104,6 +181,7 @@ internal sealed class RequestExecutor
         string relativePath,
         object? jsonBody,
         byte[]? binaryBody,
+        Func<HttpContent>? contentFactory,
         IReadOnlyList<(string Name, string? Value)>? queryParameters,
         Func<HttpResponseMessage, IReadOnlyDictionary<string, IReadOnlyList<string>>, XRateLimitInfo?, CancellationToken, CancellationToken, Task<XResponse<TBody>>> readBody,
         CancellationToken cancellationToken)
@@ -140,6 +218,10 @@ internal sealed class RequestExecutor
                 request.Content = new ByteArrayContent(binaryBody);
                 request.Content.Headers.ContentType = new MediaTypeHeaderValue("application/octet-stream");
             }
+            else if (contentFactory is not null)
+            {
+                request.Content = contentFactory();
+            }
 
             await _authenticationProvider.PrepareRequestAsync(request, operationCts.Token).ConfigureAwait(false);
 
@@ -155,8 +237,8 @@ internal sealed class RequestExecutor
                 }
                 catch (HttpRequestException ex)
                 {
-                    // Retry table (spec 13.2): "GET/HEAD с временной сетевой ошибкой ... |
-                    // Ограниченный exponential backoff с jitter". Writes are never retried here.
+                    // Retry table (spec 13.2): "GET/HEAD with a transient network error ... |
+                    // Bounded exponential backoff with jitter". Writes are never retried here.
                     if (isRetryableMethod && !isLastAttempt)
                     {
                         await DelayAsync(ComputeBackoffDelay(attempt), operationCts.Token, cancellationToken).ConfigureAwait(false);
@@ -178,9 +260,9 @@ internal sealed class RequestExecutor
 
                 if (!response.IsSuccessStatusCode)
                 {
-                    // Retry table (spec 13.2): "Истёкший OAuth 2.0 access token | Не более
-                    // одного refresh; последующая отправка только при однозначно допустимом
-                    // сценарии" - a 401 means the request was rejected before any side effect
+                    // Retry table (spec 13.2): "Expired OAuth 2.0 access token | No more than
+                    // one refresh; resending only in an unambiguously safe scenario" - a 401
+                    // means the request was rejected before any side effect
                     // ran, so retrying once after a refresh is safe even for a write method
                     // (unlike the transient-5xx/429 retries below, which stay GET/HEAD-only).
                     if (response.StatusCode == HttpStatusCode.Unauthorized
@@ -310,8 +392,8 @@ internal sealed class RequestExecutor
     }
 
     /// <summary>
-    /// Only GET/HEAD ever retry (spec 13.2: "POST/PATCH/DELETE ... по умолчанию не повторять
-    /// автоматически"). This applies to a documented temporary 429 too, deliberately more
+    /// Only GET/HEAD ever retry (spec 13.2: "POST/PATCH/DELETE ... are not automatically
+    /// retried by default"). This applies to a documented temporary 429 too, deliberately more
     /// conservative than the spec table's literal per-row reading: a write that returned 429
     /// might still have been applied server-side, and retrying it risks a duplicate write, which
     /// the spec treats as strictly worse than an extra failed read retry.
@@ -351,7 +433,7 @@ internal sealed class RequestExecutor
     }
 
     /// <summary>Exponential backoff capped at <see cref="XClientOptions.MaxRetryDelay"/>, with
-    /// full jitter (spec: "jitter через контролируемый random" - <see cref="_jitterSource"/> is
+    /// full jitter (spec: "jitter via a controllable random source" - <see cref="_jitterSource"/> is
     /// injectable so tests get deterministic delays).</summary>
     private TimeSpan ComputeBackoffDelay(int attemptNumber)
     {

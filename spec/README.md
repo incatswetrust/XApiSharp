@@ -18,7 +18,7 @@ See `docs/product-scope.md` for the family breakdown and open E0 items, and
 `endpoint-manifest.json` for the per-operation registry.
 
 This is a **first-pass inventory**: scope decisions are mechanical (in-scope unless it matches a
-hard exclusion from ТЗ section 3.3), auth/scopes are read directly from the snapshot, but
+hard exclusion from the spec section 3.3), auth/scopes are read directly from the snapshot, but
 `methodName`, request/response types, and the pagination/streaming/upload `flags` are not yet
 manually confirmed. `docsReference` is filled for 163/190 operations from a docs.x.com
 cross-check — see `overrides/e0-docs-cross-check.md` for the full discrepancy list (0 operations

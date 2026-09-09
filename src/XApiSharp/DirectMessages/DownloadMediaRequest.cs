@@ -2,7 +2,7 @@ namespace XApiSharp.DirectMessages;
 
 /// <summary>Request for <c>GET /2/dm_conversations/media/{dm_id}/{media_id}/{resource_id}</c> -
 /// downloads DM media as raw bytes (<c>application/octet-stream</c> in the registry, not JSON;
-/// spec section 9's "не все ответы приводятся к схеме data/meta").</summary>
+/// spec section 9's "not every response reduces to the data/meta schema").</summary>
 public sealed class DownloadMediaRequest
 {
     public required string DmId { get; init; }

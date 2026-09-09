@@ -6,7 +6,7 @@ using XApiSharp.Users;
 namespace XApiSharp.UnitTests;
 
 /// <summary>HTTP-07/HTTP-08 - all deadline-related behavior driven by TimeProvider, no real
-/// sleeps (spec: "все тайм-аут-зависимые тесты через TimeProvider").</summary>
+/// sleeps (spec: "every timeout-dependent test goes through TimeProvider").</summary>
 public class TimeoutTests
 {
     [Fact]

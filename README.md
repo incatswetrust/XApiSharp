@@ -33,6 +33,19 @@ matrix once they exist.
 | `eng/` | Build/pack/release scripts |
 | `.github/workflows/` | CI and release automation |
 
+## X Chat
+
+`XApiClient.Chat` covers X Chat's documented v2 HTTP operations (conversations, messages, keys,
+media) as typed transport contracts only. **This is not support for a full encrypted messenger.**
+No key generation, encryption, decryption, or cryptographic state management happens in this SDK -
+every key, ciphertext, and signature field is carried through exactly as the API declares it, for
+your own end-to-end encryption implementation to produce and consume. For a complete encrypted
+client, see X's own [Chat XDK](https://github.com/xdevplatform/chat-xdk).
+
+Regular Direct Messages (`XApiClient.DirectMessages`) and X Chat are deliberately separate models
+in this SDK, not merged into one message type - they are different products with different
+guarantees.
+
 ## Contributing
 
 See `CONTRIBUTING.md`. Security issues: see `SECURITY.md`.

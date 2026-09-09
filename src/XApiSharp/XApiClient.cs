@@ -3,6 +3,7 @@ using XApiSharp.Articles;
 using XApiSharp.Authentication;
 using XApiSharp.Bots;
 using XApiSharp.Broadcasts;
+using XApiSharp.Chat;
 using XApiSharp.Communities;
 using XApiSharp.CommunityNotes;
 using XApiSharp.Compliance;
@@ -10,13 +11,16 @@ using XApiSharp.Connections;
 using XApiSharp.DirectMessages;
 using XApiSharp.General;
 using XApiSharp.Lists;
+using XApiSharp.Media;
 using XApiSharp.News;
 using XApiSharp.Posts;
 using XApiSharp.Spaces;
+using XApiSharp.Streaming;
 using XApiSharp.Transport;
 using XApiSharp.Trends;
 using XApiSharp.Usage;
 using XApiSharp.Users;
+using XApiSharp.Webhooks;
 
 namespace XApiSharp;
 
@@ -34,7 +38,7 @@ public sealed class XApiClient
     /// <see cref="XClientOptions.AttemptTimeout"/> deterministically, without real sleeps.</param>
     /// <param name="retryJitterSource">Defaults to <see cref="Random.Shared"/>. Inject a seeded
     /// <see cref="Random"/> in tests for deterministic retry-delay assertions (spec: "jitter
-    /// через контролируемый random").</param>
+    /// via a controllable random source").</param>
     public XApiClient(HttpClient httpClient, IXAuthenticationProvider authenticationProvider, XClientOptions? options = null, TimeProvider? timeProvider = null, Random? retryJitterSource = null)
     {
         ArgumentNullException.ThrowIfNull(httpClient);
@@ -58,10 +62,14 @@ public sealed class XApiClient
         Usage = new UsageClient(executor);
         Account = new AccountClient(executor);
         General = new GeneralClient(executor);
-        Compliance = new ComplianceClient(executor);
+        Compliance = new ComplianceClient(executor, resolvedTimeProvider);
         Connections = new ConnectionsClient(executor);
         Bots = new BotsClient(executor);
         Broadcasts = new BroadcastsClient(executor);
+        Media = new MediaClient(executor, resolvedTimeProvider);
+        Streaming = new StreamingClient(executor, resolvedTimeProvider);
+        Webhooks = new WebhooksClient(executor);
+        Chat = new ChatClient(executor);
     }
 
     public UsersClient Users { get; }
@@ -97,4 +105,12 @@ public sealed class XApiClient
     public BotsClient Bots { get; }
 
     public BroadcastsClient Broadcasts { get; }
+
+    public MediaClient Media { get; }
+
+    public StreamingClient Streaming { get; }
+
+    public WebhooksClient Webhooks { get; }
+
+    public ChatClient Chat { get; }
 }

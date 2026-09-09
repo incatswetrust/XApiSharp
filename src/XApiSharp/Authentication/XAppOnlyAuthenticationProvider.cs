@@ -12,8 +12,8 @@ namespace XApiSharp.Authentication;
 /// <c>grant_type=client_credentials</c> - see
 /// https://docs.x.com/fundamentals/authentication/oauth-2-0/application-only). This endpoint is
 /// not part of the /2/ OpenAPI surface (it predates the v2 REST catalog) but is still the
-/// documented, current mechanism (spec section 10.1: "Способ получения app-only токена
-/// реализовать согласно действующим служебным endpoints").
+/// documented, current mechanism (spec section 10.1: "the way app-only tokens are obtained must
+/// be implemented per the currently-documented service endpoints").
 /// <see cref="BearerTokenAuthenticationProvider"/> remains the simple path for an
 /// already-obtained token; this type is for the "obtain it from consumer key/secret" scenario.
 /// </summary>

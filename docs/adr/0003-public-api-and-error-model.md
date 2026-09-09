@@ -79,7 +79,7 @@ to the extent the snapshot actually uses them, unknown fields preserved via exte
   unstable across regenerations.
 - **Modeling unknown/open enum values as a throw-on-deserialize failure.** Rejected per SER-06: X
   adding a new enum value server-side must not be a breaking failure for already-installed SDK
-  versions; the closed-enum failure mode was explicitly called out in the ТЗ as unacceptable.
+  versions; the closed-enum failure mode was explicitly called out in the spec as unacceptable.
 
 ## Consequences
 

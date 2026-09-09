@@ -109,8 +109,8 @@ public class UsersGetByIdContractTests
     [Fact]
     public async Task A_200_with_both_data_and_errors_is_reported_as_partial_success_not_silently_dropped()
     {
-        // Spec section 12.1: "HTTP 200 с частичными ошибками не должен незаметно превращаться в
-        // полностью успешный список" - the errors array must survive alongside a real data payload.
+        // Spec section 12.1: "an HTTP 200 with partial errors must not silently turn into a
+        // fully successful list" - the errors array must survive alongside a real data payload.
         const string json = """
             {
               "data": {"id": "1", "name": "A", "username": "a"},
