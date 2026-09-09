@@ -26,6 +26,7 @@ matrix once they exist.
 | `tests/XApiSharp.UnitTests/` | Core logic (auth, retry, parsing, pagination) |
 | `tests/XApiSharp.ContractTests/` | Per-operation contract and serialization checks |
 | `tests/XApiSharp.IntegrationTests/` | Explicitly-enabled real requests against X (disabled by default) |
+| `tests/XApiSharp.SoakTests/` | Local long-running memory/resource checks (opt-in, disabled by default) |
 | `tests/XApiSharp.PackageTests/` | Verifies the packed `.nupkg` output |
 | `samples/` | Compilable sample applications |
 | `spec/` | OpenAPI snapshot, operation manifest, documented overrides |

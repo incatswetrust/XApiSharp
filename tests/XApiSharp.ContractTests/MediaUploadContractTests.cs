@@ -146,6 +146,25 @@ public class MediaUploadContractTests
     }
 
     [Fact]
+    public async Task UploadFromStreamAsync_fails_fast_when_the_chunk_size_would_need_more_than_1000_segments()
+    {
+        using var handler = new FakeHttpMessageHandler((_, _) => throw new InvalidOperationException("should not connect - the check must fail before any HTTP call"));
+        var client = CreateClient(handler);
+        using var stream = new MemoryStream(new byte[1]);
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() => client.Media.UploadFromStreamAsync(new UploadFromStreamRequest
+        {
+            Media = stream,
+            MediaCategory = XMediaCategory.TweetVideo,
+            MediaType = XMediaMimeType.VideoMp4,
+            TotalBytes = 1001,
+            ChunkSizeBytes = 1, // 1001 segments needed, over the registry's 0-999 segment_index range
+        }));
+
+        Assert.Contains("1000-segment limit", ex.Message, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public async Task UploadFromStreamAsync_throws_with_last_known_state_when_processing_fails()
     {
         using var handler = new FakeHttpMessageHandler((request, _) =>

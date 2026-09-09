@@ -283,6 +283,17 @@ public sealed class MediaClient
                 "TotalBytes must be supplied when Media is not seekable - the chunked-upload protocol needs the total size at initialize time, before any bytes are read.",
                 nameof(request)));
 
+        // Fail before any HTTP call, not after burning ~1000 real append requests: segment_index
+        // tops out at 999 (AppendMediaUploadRequest.SegmentIndex), so ChunkSizeBytes must be large
+        // enough to cover TotalBytes in at most 1000 segments.
+        var requiredSegments = (totalBytes + request.ChunkSizeBytes - 1) / request.ChunkSizeBytes;
+        if (requiredSegments > 1000)
+        {
+            throw new ArgumentException(
+                $"TotalBytes ({totalBytes:N0}) would need {requiredSegments:N0} segments at ChunkSizeBytes={request.ChunkSizeBytes:N0}, exceeding the registry's 1000-segment limit (segment_index is 0-999) - increase ChunkSizeBytes.",
+                nameof(request));
+        }
+
         var initializeResponse = await InitializeUploadAsync(
             new InitializeMediaUploadRequest
             {
@@ -314,6 +325,12 @@ public sealed class MediaClient
                     break;
                 }
 
+                // Safe to hand out the same reused buffer array (no copy) for a full-length
+                // segment: AppendUploadAsync's HttpContent is fully serialized out of it before
+                // that await returns (standard HttpContent.CopyToAsync semantics - the send
+                // completes, or throws, before this loop overwrites the array on the next
+                // iteration), so no torn segment is possible. A future refactor toward
+                // fire-and-forget or lazily-read content would break this assumption.
                 var segment = segmentLength == buffer.Length ? buffer : buffer[..segmentLength];
 
                 await AppendUploadAsync(
@@ -378,10 +395,7 @@ public sealed class MediaClient
                 throw new XMediaUploadException("Timed out waiting for media processing to finish.", mediaId, mediaKey, lastKnownState: state);
             }
 
-            using (var delayCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
-            {
-                await Task.Delay(checkAfter, _timeProvider, delayCts.Token).ConfigureAwait(false);
-            }
+            await Task.Delay(checkAfter, _timeProvider, cancellationToken).ConfigureAwait(false);
 
             var statusResponse = await GetUploadStatusAsync(new GetMediaUploadStatusRequest { MediaId = mediaId }, cancellationToken).ConfigureAwait(false);
             info = statusResponse.Body?.Data

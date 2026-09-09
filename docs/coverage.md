@@ -120,3 +120,21 @@ To reproduce: `dotnet test tests/XApiSharp.UnitTests/XApiSharp.UnitTests.csproj 
 (same for `XApiSharp.ContractTests`), then merge the two `coverage.cobertura.xml` outputs by source
 line - a single run undercounts, since the two test projects exercise different, only partially
 overlapping code paths.
+
+## Soak test results (spec section 19.5)
+
+**SDK version:** `0.1.0-alpha.1` &nbsp;·&nbsp; **Measured:** 2026-09-09 &nbsp;·&nbsp; **Machine:**
+local dev (arm64, macOS) &nbsp;·&nbsp; **Source:** `tests/XApiSharp.SoakTests/` (see its README for
+what each check does and why peak memory is sampled with a forced GC collection, not a raw
+`GC.GetTotalMemory(false)` reading).
+
+| Check | Parameters | Peak managed | After completion (forced GC) | Peak working set | Result |
+| --- | --- | --- | --- | --- | --- |
+| Stream (`StreamingSoakTests`) | 500,000 NDJSON events, 4 KiB max message size, 1 connection | 9.48 MB (baseline 1.51 MB, delta ~16 bytes/event) | 3.90 MB | 103.79 MB | Connection closed on stop (STREAM-12); memory growth not proportional to event count (STREAM-04) |
+| Media (`MediaUploadSoakTests`) | 200 MiB synthetic upload, 2 MiB chunks, 100 segments | 7.58 MB (< 4x one chunk) | 3.26 MB | 103.12 MB | Peak nowhere near the 200 MiB transferred (MEDIA-01 holds under real load, not just by inspection) |
+
+Both runs opened exactly the expected number of connections (1 for the stream; 102 for the upload -
+initialize + 100 appends + finalize) with no accumulation observed afterward. Working-set figures
+are process-wide (interpreter/runtime baseline included, not just the test's own data) and are
+reported alongside the managed-heap figures rather than alone, per spec 19.5's "don't conclude no
+leak from one RSS figure alone."
