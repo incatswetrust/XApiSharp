@@ -138,6 +138,90 @@ public class XAppOnlyAuthenticationProviderTests
         Assert.Equal("Bearer fetched-token", apiCallAuthorization);
     }
 
+    [Fact]
+    public async Task RefreshAsync_without_a_cached_token_just_fetches_one()
+    {
+        var revokeCalled = false;
+        using var handler = new FakeHttpMessageHandler((request, _) =>
+        {
+            if (request.RequestUri!.AbsolutePath == "/oauth2/invalidate_token")
+            {
+                revokeCalled = true;
+            }
+
+            return Task.FromResult(TokenResponse("fresh-token"));
+        });
+        using var httpClient = new HttpClient(handler);
+        using var provider = new XAppOnlyAuthenticationProvider(httpClient, "k", "s");
+
+        var token = await provider.RefreshAsync(CancellationToken.None);
+
+        Assert.Equal("fresh-token", token);
+        Assert.False(revokeCalled);
+    }
+
+    [Fact]
+    public async Task RefreshAsync_with_a_cached_token_revokes_it_first_then_fetches_a_new_one()
+    {
+        var revokedToken = (string?)null;
+        var fetchCount = 0;
+        using var handler = new FakeHttpMessageHandler(async (request, ct) =>
+        {
+            if (request.RequestUri!.AbsolutePath == "/oauth2/invalidate_token")
+            {
+                var form = await request.Content!.ReadAsStringAsync(ct);
+                revokedToken = Uri.UnescapeDataString(form.Split('=')[1]);
+                return new HttpResponseMessage(HttpStatusCode.OK) { Content = new StringContent("{}") };
+            }
+
+            fetchCount++;
+            return TokenResponse($"token-{fetchCount}");
+        });
+        using var httpClient = new HttpClient(handler);
+        using var provider = new XAppOnlyAuthenticationProvider(httpClient, "k", "s");
+
+        // Populate the cache first.
+        using var initialRequest = new HttpRequestMessage(HttpMethod.Get, "https://api.x.com/2/users/1");
+        await provider.PrepareRequestAsync(initialRequest, CancellationToken.None);
+
+        var refreshed = await provider.RefreshAsync(CancellationToken.None);
+
+        Assert.Equal("token-1", initialRequest.Headers.Authorization?.Parameter);
+        Assert.Equal("token-2", refreshed);
+        Assert.Equal("token-1", revokedToken);
+    }
+
+    [Fact]
+    public async Task A_response_missing_the_documented_token_shape_throws_XProtocolException()
+    {
+        using var handler = new FakeHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("""{"token_type":"mac","access_token":"x"}""", Encoding.UTF8, "application/json"),
+        }));
+        using var httpClient = new HttpClient(handler);
+        using var provider = new XAppOnlyAuthenticationProvider(httpClient, "k", "s");
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.x.com/2/users/1");
+        await Assert.ThrowsAsync<XProtocolException>(() => provider.PrepareRequestAsync(request, CancellationToken.None).AsTask());
+    }
+
+    [Fact]
+    public async Task A_failed_fetch_with_no_parseable_error_body_falls_back_to_a_generic_message()
+    {
+        using var handler = new FakeHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+        {
+            Content = new StringContent("<html>down for maintenance</html>", Encoding.UTF8, "text/html"),
+        }));
+        using var httpClient = new HttpClient(handler);
+        using var provider = new XAppOnlyAuthenticationProvider(httpClient, "k", "s");
+
+        using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.x.com/2/users/1");
+        var ex = await Assert.ThrowsAsync<XAuthenticationException>(() => provider.PrepareRequestAsync(request, CancellationToken.None).AsTask());
+
+        Assert.Contains("Failed to obtain the app-only token", ex.Message, StringComparison.Ordinal);
+        Assert.Contains("503", ex.Message, StringComparison.Ordinal);
+    }
+
     private static HttpResponseMessage TokenResponse(string accessToken)
     {
         return new HttpResponseMessage(HttpStatusCode.OK)
