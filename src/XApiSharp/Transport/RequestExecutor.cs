@@ -112,6 +112,66 @@ internal sealed class RequestExecutor
     }
 
     /// <summary>
+    /// Opens a streaming connection (spec section 16) - auth prep and connect-time error mapping
+    /// reuse <see cref="BuildExceptionAsync"/>, the same mapping every other overload uses, so a
+    /// connect-time 401/403/429 comes back as the same typed exception a caller already knows how
+    /// to handle. Unlike <see cref="ExecuteAsync{TBody}"/> this does not layer an operation/attempt
+    /// timeout over the connection - a streaming connection is meant to live far longer than
+    /// <see cref="XClientOptions.OperationTimeout"/>, so its lifetime is governed by the caller's
+    /// own <paramref name="cancellationToken"/> and, above this method, whatever idle timeout the
+    /// streaming engine applies per read (STREAM-08) - not by the regular per-call deadlines. The
+    /// returned, still-open <see cref="HttpResponseMessage"/> is the caller's to dispose (STREAM-12:
+    /// ending enumeration closes the connection); no body-level retry applies past this point -
+    /// once the connection is open, a stream-specific reconnect policy (STREAM-07) takes over, not
+    /// this method being called in a loop.
+    /// </summary>
+    internal async Task<HttpResponseMessage> OpenStreamAsync(HttpMethod method, string relativePath, IReadOnlyList<(string Name, string? Value)>? queryParameters, CancellationToken cancellationToken)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var fullPath = relativePath + (queryParameters is null ? null : QueryStringBuilder.Build(queryParameters));
+        var hasRefreshedForThisCall = false;
+
+        while (true)
+        {
+            using var request = new HttpRequestMessage(method, new Uri(_options.BaseUrl, fullPath));
+            await _authenticationProvider.PrepareRequestAsync(request, cancellationToken).ConfigureAwait(false);
+
+            HttpResponseMessage response;
+            try
+            {
+                response = await _httpClient
+                    .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new XTransportException("Streaming connection failed at the transport level.", ex);
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == HttpStatusCode.Unauthorized
+                    && !hasRefreshedForThisCall
+                    && _authenticationProvider is IXRefreshableAuthenticationProvider refreshable)
+                {
+                    hasRefreshedForThisCall = true;
+                    response.Dispose();
+                    await refreshable.ForceRefreshAsync(cancellationToken).ConfigureAwait(false);
+                    continue;
+                }
+
+                using (response)
+                {
+                    throw await BuildExceptionAsync(response, cancellationToken, cancellationToken).ConfigureAwait(false);
+                }
+            }
+
+            return response;
+        }
+    }
+
+    /// <summary>
     /// The shared attempt loop (auth prep, transient-error/429/401-refresh retry, error mapping)
     /// every <c>Send*Async</c> overload goes through - only what happens with a *successful*
     /// response varies, via <paramref name="readBody"/>.

@@ -14,6 +14,7 @@ using XApiSharp.Media;
 using XApiSharp.News;
 using XApiSharp.Posts;
 using XApiSharp.Spaces;
+using XApiSharp.Streaming;
 using XApiSharp.Transport;
 using XApiSharp.Trends;
 using XApiSharp.Usage;
@@ -64,6 +65,7 @@ public sealed class XApiClient
         Bots = new BotsClient(executor);
         Broadcasts = new BroadcastsClient(executor);
         Media = new MediaClient(executor, resolvedTimeProvider);
+        Streaming = new StreamingClient(executor, resolvedTimeProvider);
     }
 
     public UsersClient Users { get; }
@@ -101,4 +103,6 @@ public sealed class XApiClient
     public BroadcastsClient Broadcasts { get; }
 
     public MediaClient Media { get; }
+
+    public StreamingClient Streaming { get; }
 }

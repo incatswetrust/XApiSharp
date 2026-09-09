@@ -6342,9 +6342,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamActivityAsync",
+      "requestType": "XApiSharp.Streaming.ComplianceStreamRequest",
+      "responseType": "XApiSharp.Streaming.ActivityStreamEvent",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6353,8 +6353,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "StreamingContractTests.StreamActivityAsync_parses_event_type_and_payload"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -6385,9 +6387,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamLikesComplianceAsync",
+      "requestType": "XApiSharp.Streaming.ComplianceStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamComplianceEvent",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6396,7 +6398,7 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
+      "implementation": "implemented",
       "contractTests": [],
       "liveValidation": {
         "status": "not-run",
@@ -6428,9 +6430,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamLikesFirehoseAsync",
+      "requestType": "XApiSharp.Streaming.LikeStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamLikeResponse",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6439,8 +6441,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "StreamingContractTests.StreamLikesFirehoseAsync_sends_like_field_selection_and_parses_the_event"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -6471,9 +6475,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamLikesSample10Async",
+      "requestType": "XApiSharp.Streaming.LikeStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamLikeResponse",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6482,7 +6486,7 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
+      "implementation": "implemented",
       "contractTests": [],
       "liveValidation": {
         "status": "not-run",
@@ -6514,9 +6518,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamPostsComplianceAsync",
+      "requestType": "XApiSharp.Streaming.ComplianceStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamComplianceEvent",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6525,8 +6529,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "StreamingContractTests.StreamPostsComplianceAsync_requires_partition_and_sends_it_when_provided"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -6557,9 +6563,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamPostsFirehoseAsync",
+      "requestType": "XApiSharp.Streaming.PostVolumeStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamPostResponse",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6568,7 +6574,7 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
+      "implementation": "implemented",
       "contractTests": [],
       "liveValidation": {
         "status": "not-run",
@@ -6600,9 +6606,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamPostsFirehoseEnAsync",
+      "requestType": "XApiSharp.Streaming.PostVolumeStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamPostResponse",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6611,7 +6617,7 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
+      "implementation": "implemented",
       "contractTests": [],
       "liveValidation": {
         "status": "not-run",
@@ -6643,9 +6649,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamPostsFirehoseJaAsync",
+      "requestType": "XApiSharp.Streaming.PostVolumeStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamPostResponse",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6654,7 +6660,7 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
+      "implementation": "implemented",
       "contractTests": [],
       "liveValidation": {
         "status": "not-run",
@@ -6686,9 +6692,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamPostsFirehoseKoAsync",
+      "requestType": "XApiSharp.Streaming.PostVolumeStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamPostResponse",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6697,7 +6703,7 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
+      "implementation": "implemented",
       "contractTests": [],
       "liveValidation": {
         "status": "not-run",
@@ -6729,9 +6735,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamPostsFirehosePtAsync",
+      "requestType": "XApiSharp.Streaming.PostVolumeStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamPostResponse",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6740,7 +6746,7 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
+      "implementation": "implemented",
       "contractTests": [],
       "liveValidation": {
         "status": "not-run",
@@ -6772,9 +6778,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamPostLabelsAsync",
+      "requestType": "XApiSharp.Streaming.ComplianceStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamComplianceEvent",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6783,7 +6789,7 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
+      "implementation": "implemented",
       "contractTests": [],
       "liveValidation": {
         "status": "not-run",
@@ -6815,9 +6821,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamPostsSampleAsync",
+      "requestType": "XApiSharp.Streaming.PostSampleStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamPostResponse",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6826,8 +6832,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "StreamingContractTests.StreamPostsSampleAsync_skips_heartbeats_and_yields_each_ndjson_line"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -6858,9 +6866,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamPostsSample10Async",
+      "requestType": "XApiSharp.Streaming.PostVolumeStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamPostResponse",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6869,8 +6877,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "StreamingContractTests.StreamPostsSample10Async_sends_the_required_partition"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -6901,9 +6911,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamPostsAsync",
+      "requestType": "XApiSharp.Streaming.FilteredPostStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamPostsResponse",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6912,8 +6922,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "StreamingContractTests.StreamPostsAsync_sends_legacy_tweet_field_vocabulary_and_parses_matching_rules"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -6944,9 +6956,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.GetRulesAsync / GetRulesPageAsync / GetRulesPagesAsync",
+      "requestType": "XApiSharp.Streaming.GetStreamRulesRequest",
+      "responseType": "XApiSharp.Streaming.GetStreamRulesResponse",
       "flags": {
         "pagination": true,
         "streaming": true,
@@ -6955,8 +6967,11 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "StreamingContractTests.GetRulesPageAsync_sends_pagination_token_and_parses_next_token",
+        "StreamingContractTests.GetRulesAsync_pages_across_multiple_calls_via_next_token"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -6987,9 +7002,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.UpdateRulesAsync",
+      "requestType": "XApiSharp.Streaming.UpdateStreamRulesRequest",
+      "responseType": "XApiSharp.Streaming.UpdateStreamRulesResponse",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -6998,8 +7013,10 @@
         "sideEffects": true
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "StreamingContractTests.UpdateRulesAsync_sends_add_and_delete_and_dry_run_query"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -7030,9 +7047,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
+      "methodName": "Streaming.GetRuleCountsAsync",
       "requestType": null,
-      "responseType": null,
+      "responseType": "XApiSharp.Streaming.GetStreamRuleCountsResponse",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -7041,8 +7058,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "StreamingContractTests.GetRuleCountsAsync_hits_the_counts_path"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
@@ -7073,9 +7092,9 @@
         }
       ],
       "authNote": null,
-      "methodName": null,
-      "requestType": null,
-      "responseType": null,
+      "methodName": "Streaming.StreamUsersComplianceAsync",
+      "requestType": "XApiSharp.Streaming.ComplianceStreamRequest",
+      "responseType": "XApiSharp.Streaming.StreamComplianceEvent",
       "flags": {
         "pagination": false,
         "streaming": true,
@@ -7084,8 +7103,10 @@
         "sideEffects": false
       },
       "flagsNote": "Heuristically detected from path/params/tag at E0 inventory time; must be confirmed manually during E4/E5 implementation, not authoritative.",
-      "implementation": "pending",
-      "contractTests": [],
+      "implementation": "implemented",
+      "contractTests": [
+        "StreamingContractTests.StreamUsersComplianceAsync_requires_partition"
+      ],
       "liveValidation": {
         "status": "not-run",
         "checkedAtUtc": null,
