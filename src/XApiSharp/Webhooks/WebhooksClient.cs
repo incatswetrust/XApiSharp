@@ -6,7 +6,10 @@ namespace XApiSharp.Webhooks;
 
 /// <summary>
 /// Typed methods for the Webhooks family (8 operations per the registry, spec section 17.1):
-/// webhook create/read/validate/delete, replay jobs, and filtered-stream link management. The
+/// webhook create/read/validate/delete, replay jobs, and filtered-stream link management - plus 5
+/// Account Activity subscription operations (registry group "Account Activity", not tied to any
+/// roadmap stage's subtask list until this addition; see issue #18) that share this client because
+/// they take the same <c>webhook_id</c> <see cref="CreateWebhooksResponseData.Id"/> returns. The
 /// CRC challenge/signature-verification helpers your app's own receiving endpoint needs
 /// (<see cref="XWebhookChallengeResponder"/>/<see cref="XWebhookSignatureVerifier"/>) live
 /// alongside this client but don't depend on it - they run on the inbound side, not as outgoing
@@ -120,5 +123,72 @@ public sealed class WebhooksClient
         ArgumentException.ThrowIfNullOrWhiteSpace(request.WebhookId);
 
         return _executor.SendAsync<ValidateWebhooksResponse>(HttpMethod.Put, $"2/webhooks/{Uri.EscapeDataString(request.WebhookId)}", cancellationToken);
+    }
+
+    /// <summary><c>GET /2/account_activity/webhooks/{webhook_id}/subscriptions/all</c> - Validate
+    /// Account Activity Subscription (checks whether the authenticated user has one). Requires
+    /// OAuth 2.0 (<c>users.read</c> + <c>tweet.read</c> + <c>dm.write</c> + <c>dm.read</c>) or
+    /// OAuth 1.0a.</summary>
+    public Task<XResponse<ValidateAccountActivitySubscriptionResponse>> ValidateAccountActivitySubscriptionAsync(ValidateAccountActivitySubscriptionRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.WebhookId);
+
+        return _executor.SendAsync<ValidateAccountActivitySubscriptionResponse>(
+            HttpMethod.Get,
+            $"2/account_activity/webhooks/{Uri.EscapeDataString(request.WebhookId)}/subscriptions/all",
+            cancellationToken);
+    }
+
+    /// <summary><c>POST /2/account_activity/webhooks/{webhook_id}/subscriptions/all</c> - Create
+    /// subscription (subscribes the authenticated user to Account Activity events on this
+    /// webhook). Requires OAuth 2.0 (<c>dm.write</c> + <c>users.read</c> + <c>tweet.read</c> +
+    /// <c>dm.read</c>) or OAuth 1.0a.</summary>
+    public Task<XResponse<CreateAccountActivitySubscriptionResponse>> CreateAccountActivitySubscriptionAsync(CreateAccountActivitySubscriptionRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.WebhookId);
+
+        return _executor.SendAsync<CreateAccountActivitySubscriptionResponse>(
+            HttpMethod.Post,
+            $"2/account_activity/webhooks/{Uri.EscapeDataString(request.WebhookId)}/subscriptions/all",
+            cancellationToken);
+    }
+
+    /// <summary><c>GET /2/account_activity/webhooks/{webhook_id}/subscriptions/all/list</c> - Get
+    /// Account Activity Subscriptions (every user subscribed to this webhook). Requires app-only
+    /// bearer.</summary>
+    public Task<XResponse<GetAccountActivitySubscriptionsResponse>> GetAccountActivitySubscriptionsAsync(GetAccountActivitySubscriptionsRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.WebhookId);
+
+        return _executor.SendAsync<GetAccountActivitySubscriptionsResponse>(
+            HttpMethod.Get,
+            $"2/account_activity/webhooks/{Uri.EscapeDataString(request.WebhookId)}/subscriptions/all/list",
+            cancellationToken);
+    }
+
+    /// <summary><c>DELETE /2/account_activity/webhooks/{webhook_id}/subscriptions/{user_id}/all</c>
+    /// - Delete subscription (unsubscribes a user). Requires app-only bearer.</summary>
+    public Task<XResponse<DeleteAccountActivitySubscriptionResponse>> DeleteAccountActivitySubscriptionAsync(DeleteAccountActivitySubscriptionRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.WebhookId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.UserId);
+
+        return _executor.SendAsync<DeleteAccountActivitySubscriptionResponse>(
+            HttpMethod.Delete,
+            $"2/account_activity/webhooks/{Uri.EscapeDataString(request.WebhookId)}/subscriptions/{Uri.EscapeDataString(request.UserId)}/all",
+            cancellationToken);
+    }
+
+    /// <summary><c>GET /2/account_activity/subscriptions/count</c> - Get Account Activity
+    /// Subscription Count. Requires app-only bearer.</summary>
+    public Task<XResponse<GetAccountActivitySubscriptionCountResponse>> GetAccountActivitySubscriptionCountAsync(GetAccountActivitySubscriptionCountRequest request, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+
+        return _executor.SendAsync<GetAccountActivitySubscriptionCountResponse>(HttpMethod.Get, "2/account_activity/subscriptions/count", cancellationToken);
     }
 }
