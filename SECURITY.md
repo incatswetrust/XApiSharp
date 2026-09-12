@@ -5,7 +5,7 @@ public GitHub issue:
 
 - Preferred: open a [GitHub Security Advisory](https://github.com/incatswetrust/XApiSharp/security/advisories/new)
   for this repository.
-- Alternatively, email **chaikovskyi.gev@gmail.com** with details and, if possible, steps to
+- Alternatively, email **chaikovskyi.dev@gmail.com** with details and, if possible, steps to
   reproduce.
 
 We'll acknowledge receipt and work with you on a fix and coordinated disclosure timeline before
